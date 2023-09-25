@@ -43,6 +43,7 @@ func makeApp(ctx *cli.Context) error {
 	if err := NewApp(name, pwd); err != nil {
 		log.Fatal("Unable to create new app: " + err.Error())
 	}
+
 	fmt.Printf("Created app %s in directory %s\n", name, pwd)
 	return nil
 }

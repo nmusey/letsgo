@@ -21,7 +21,7 @@ type AppPaths struct {
 func NewApp(name string, root string) error {
 	paths := AppPaths{
 		Root:    path.Join(root, name),
-		folders: []string{"handlers", "views", "models", "data", "public", "middleware", "migrations"},
+		folders: []string{},
 	}
 
 	app := App{
@@ -34,7 +34,11 @@ func NewApp(name string, root string) error {
 		return err
 	}
 
-	if err := app.checkFiles([]string{".env", "env.example"}); err != nil {
+	initFiles := []string{
+		".env", "env.example", "README.md", "Dockerfile", "docker-compose.yml", ".air.toml",
+		"main.go", "go.mod", "go.sum",
+	}
+	if err := app.checkFiles(initFiles); err != nil {
 		return err
 	}
 
@@ -66,6 +70,7 @@ func (app *App) checkFiles(filenames []string) error {
 func (app *App) checkFile(filename string) error {
 	replacements := map[string]string{
 		"appName": app.Name,
+		"appRepo": "github.com/nmusey/" + app.Name, // TODO - ask for the url
 		"dbPort":  "5432",
 	}
 
