@@ -1,4 +1,4 @@
-package letsgo
+package cli
 
 import (
 	"fmt"

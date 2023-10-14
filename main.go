@@ -1,7 +1,7 @@
 package main
 
-import "github.com/nmusey/letsgo/letsgo"
+import "github.com/nmusey/letsgo/cli"
 
 func main() {
-	letsgo.RunCli()
+	cli.RunCli()
 }

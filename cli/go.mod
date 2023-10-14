@@ -1,4 +1,4 @@
-module github.com/nmusey/letsgo
+module github.com/nmusey/letsgo/cli
 
 go 1.21
 

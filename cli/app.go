@@ -1,10 +1,10 @@
-package letsgo
+package cli
 
 import (
 	"os"
 	"path"
 
-	"github.com/nmusey/letsgo/utils"
+	"github.com/nmusey/letsgo/cli/utils"
 )
 
 type App struct {
@@ -36,8 +36,8 @@ func NewApp(name string, root string) error {
 
 	initFiles := []string{
 		".env", "env.example", "README.md", "Dockerfile", "docker-compose.yml", ".air.toml",
-		"main.go", "go.mod", "go.sum",
 	}
+
 	if err := app.checkFiles(initFiles); err != nil {
 		return err
 	}
@@ -69,9 +69,9 @@ func (app *App) checkFiles(filenames []string) error {
 
 func (app *App) checkFile(filename string) error {
 	replacements := map[string]string{
-		"appName": app.Name,
-		"appRepo": "github.com/nmusey/" + app.Name, // TODO - ask for the url
-		"dbPort":  "5432",
+		"$appName": app.Name,
+		"$appRepo": "github.com/nmusey/" + app.Name, // TODO - ask for the url
+		"$dbPort":  "5432",
 	}
 
 	outpath := path.Join(app.Paths.Root, filename)
@@ -93,5 +93,5 @@ func getTemplatePath(filename string) (string, error) {
 		return "", err
 	}
 
-	return path.Join(pwd, "templates", filename), nil
+	return path.Join(pwd, "cli", "templates", filename), nil
 }
