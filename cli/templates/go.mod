@@ -1,4 +1,4 @@
-module $module
+module $appRepo
 
 go 1.21
 
