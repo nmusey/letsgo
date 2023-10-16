@@ -9,7 +9,7 @@ import (
 )
 
 func RunCli() {
-	app := cli.App{
+	app := cli.App {
 		Name:    "letsgo",
 		Usage:   "letsgo --help",
 		Suggest: true,

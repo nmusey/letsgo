@@ -1,19 +1,16 @@
-package handler
+package http
 
 import (
     "net/http"
 )
 
 type Handler struct {
-    handler func (http.ResponseWriter, *http.Request): err
+    Path string
+    Method string
+    Handler func (ctx Ctx) err
+    Validators []func (ctx Ctx) err
 }
 
-func (h *Handler) RegisterRoute(): http.Handler, err {
-    return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
-        err := h.handler(w, r)
-        if err != nil {
-            w.WriteHeader(http.StatusInternalServerError)
-            w.Write()
-        }
-    }), nil
+func (h *Handler) AddValidator() {
+    h.validators = append(h.validators, validator)
 }
