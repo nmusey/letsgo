@@ -9,7 +9,7 @@ import (
 
 type App struct {
 	Name  string
-	Debug bool
+    Repo string
 	Paths AppPaths
 }
 
@@ -18,7 +18,7 @@ type AppPaths struct {
 	folders []string
 }
 
-func NewApp(name string, root string) error {
+func NewApp(name string, repo string, root string) error {
 	paths := AppPaths{
 		Root:    path.Join(root, name),
 		folders: []string{},
@@ -26,7 +26,7 @@ func NewApp(name string, root string) error {
 
 	app := App{
 		Name:  name,
-		Debug: true, // TODO - make this ENV controlled
+        Repo: repo,
 		Paths: paths,
 	}
 
@@ -35,10 +35,22 @@ func NewApp(name string, root string) error {
 	}
 
 	initFiles := []string{
-		".env", "env.example", "README.md", "Dockerfile", "docker-compose.yml", ".air.toml",
+		".env", 
+        "env.example", 
+        "README.md", 
+        "Dockerfile", 
+        "docker-compose.yml", 
+        ".air.toml",
+        "go.mod"
 	}
 
-	if err := app.checkFiles(initFiles); err != nil {
+	replacements := map[string]string{
+		"$appName": app.Name,
+		"$appRepo": repo
+		"$dbPort":  "5432",
+	}
+
+	if err := app.checkFiles(initFiles, replacements); err != nil {
 		return err
 	}
 
@@ -67,12 +79,7 @@ func (app *App) checkFiles(filenames []string) error {
 	return nil
 }
 
-func (app *App) checkFile(filename string) error {
-	replacements := map[string]string{
-		"$appName": app.Name,
-		"$appRepo": "github.com/nmusey/" + app.Name, // TODO - ask for the url
-		"$dbPort":  "5432",
-	}
+func (app *App) checkFile(filename string, replacements map[string]string) error {
 
 	outpath := path.Join(app.Paths.Root, filename)
 	if err := utils.UpsertFile(outpath); err != nil {

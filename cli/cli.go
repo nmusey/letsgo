@@ -20,7 +20,7 @@ func RunCli() {
 				Subcommands: []*cli.Command{
 					{
 						Name:   "app",
-						Usage:  "letsgo make app projectname",
+						Usage:  "letsgo make app projectname repository",
 						Action: makeApp,
 					},
 				},
@@ -35,12 +35,13 @@ func RunCli() {
 
 func makeApp(ctx *cli.Context) error {
 	name := ctx.Args().Get(0)
+    repo := ctx.Args().Get(1)
 	pwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 
-	if err := NewApp(name, pwd); err != nil {
+	if err := NewApp(name, repo, pwd); err != nil {
 		log.Fatal("Unable to create new app: " + err.Error())
 	}
 
