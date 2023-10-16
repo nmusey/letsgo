@@ -24,8 +24,8 @@ func (s *Server) RegisterHandler(handler *Handler) {
 	s.Mux.HandleFunc(handler.path, func(w http.ResponseWriter, r *http.Request) {
 		ctx := Ctx{Req: r, Res: &w}
 
-        for _, validator := range handler.validators {
-            if err := validator(ctx); err != nil {
+        for _, middleware := range handler.Middleware {
+            if err := middleware (ctx); err != nil {
                 ctx.SetStatus(http.StatusBadRequest)
                 ctx.Send(err.Error())
                 return
