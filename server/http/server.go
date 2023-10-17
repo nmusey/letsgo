@@ -1,6 +1,9 @@
 package http
 
-import "net/http"
+import (
+	"net/http"
+	"os"
+)
 
 type Server struct {
 	Mux *http.ServeMux
@@ -21,8 +24,13 @@ func (s *Server) ServeStaticDir(url string, path string) {
 }
 
 func (s *Server) RegisterHandler(handler *Handler) {
-	s.Mux.HandleFunc(handler.path, func(w http.ResponseWriter, r *http.Request) {
-		ctx := Ctx{Req: r, Res: &w}
+	s.Mux.HandleFunc(handler.Path, func(w http.ResponseWriter, r *http.Request) {
+        ctx := Ctx{Req: r, Res: &w}
+
+        if handler.Method != r.Method {
+            ctx.SetStatus(http.StatusMethodNotAllowed)
+            return
+        }
 
         for _, middleware := range handler.Middleware {
             if err := middleware (ctx); err != nil {
@@ -32,11 +40,14 @@ func (s *Server) RegisterHandler(handler *Handler) {
             }
         }
 
-        if err := handler.callback(ctx); err != nil {
-            errorMessage := os.Getenv("ENVIRONMENT") == "dev" ? err.Error() : "Internal Server Error"
+        if err := handler.Callback(ctx); err != nil {
+            errorMessage := "Internal Server Error"
+            if os.Getenv("ENVIRONMENT") == "dev" {
+                err.Error() 
+            }
+
             ctx.SetStatus(http.StatusInternalServerError)
             ctx.Send(errorMessage)
         }
-	})
-    .Methods(handler.method)
+    })
 }

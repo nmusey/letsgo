@@ -1,7 +1,9 @@
 package middleware
 
-func MakeValidator(validator func (interface{}) err) func (ctx Ctx) err {
-    return func (ctx Ctx) err {
-        return validator(ctx))
+import "github.com/nmusey/letsgo/server/http"
+
+func MakeValidator(validator func (interface{}) error) func (ctx http.Ctx) error {
+    return func (ctx http.Ctx) error {
+        return validator(ctx)
     }
 }

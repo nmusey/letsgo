@@ -21,8 +21,8 @@ func (c *Ctx) SetHeader(key string, value string) {
 	(*c.Res).Header().Set(key, value)
 }
 
-func (c *Ctx) SetStatus(status int) string {
-    (*c.Res).WriteHeader(key)
+func (c *Ctx) SetStatus(status int) {
+    (*c.Res).WriteHeader(status)
 }
 
 func (c *Ctx) GetBody() string {
@@ -43,9 +43,3 @@ func (c *Ctx) SendJson(body string) {
 	c.SetHeader("Content-Type", "application/json")
 	c.Send(body)
 }
-
-func (c *Ctx) SendJson(body interface{}) {
-    c.SetHeader("Content-Type", "application/json")
-    c.Send(body)
-}
-
