@@ -1,4 +1,4 @@
-package cli
+package main
 
 import (
 	"fmt"
@@ -8,6 +8,10 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+func main() {
+    RunCli()
+}
+
 func RunCli() {
 	app := cli.App {
 		Name:    "letsgo",
@@ -16,14 +20,8 @@ func RunCli() {
 		Commands: []*cli.Command{
 			{
 				Name:  "make",
-				Usage: "letsgo make resource name",
-				Subcommands: []*cli.Command{
-					{
-						Name:   "app",
-						Usage:  "letsgo make app projectname repository",
-						Action: makeApp,
-					},
-				},
+				Usage: "letsgo make name repo",
+                Action: makeApp,
 			},
 		},
 	}

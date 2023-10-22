@@ -1,4 +1,4 @@
-package cli
+package main
 
 import (
 	"os"
@@ -41,12 +41,12 @@ func NewApp(name string, repo string, root string) error {
         "Dockerfile", 
         "docker-compose.yml", 
         ".air.toml",
-        "go.mod"
+        "go.mod",
 	}
 
 	replacements := map[string]string{
 		"$appName": app.Name,
-		"$appRepo": repo
+		"$appRepo": repo,
 		"$dbPort":  "5432",
 	}
 
@@ -69,9 +69,9 @@ func (app *App) initPaths(paths AppPaths) error {
 	return nil
 }
 
-func (app *App) checkFiles(filenames []string) error {
+func (app *App) checkFiles(filenames []string, replacements map[string]string) error {
 	for _, filename := range filenames {
-		if err := app.checkFile(filename); err != nil {
+		if err := app.checkFile(filename, replacements); err != nil {
 			return err
 		}
 	}
