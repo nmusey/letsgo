@@ -28,13 +28,8 @@ func UpsertFile(filepath string) error {
 	return nil
 }
 
-func CopyTemplateFile(templatePath string, outpath string, replacements map[string]string) error {
-	templateBytes, err := os.ReadFile(templatePath)
-	if err != nil {
-		return err
-	}
-
-	filledTemplate := ReplaceAllInString(string(templateBytes), replacements)
+func CopyTemplateFile(template string, templateContents string, outpath string, replacements map[string]string) error {
+	filledTemplate := ReplaceAllInString(templateContents, replacements)
 	return os.WriteFile(outpath, []byte(filledTemplate), 0644)
 }
 

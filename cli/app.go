@@ -1,7 +1,7 @@
-package main
+package cli
 
 import (
-	"os"
+    "embed"
 	"path"
 
 	"github.com/nmusey/letsgo/cli/utils"
@@ -34,16 +34,8 @@ func NewApp(name string, repo string, root string) error {
 		return err
 	}
 
-	initFiles := []string{
-		".env", 
-        "env.example", 
-        "README.md", 
-        "Dockerfile", 
-        "docker-compose.yml", 
-        ".air.toml",
-        "go.mod",
-	}
-
+	initFiles := getInitFiles()
+    
 	replacements := map[string]string{
 		"$appName": app.Name,
 		"$appRepo": repo,
@@ -55,6 +47,25 @@ func NewApp(name string, repo string, root string) error {
 	}
 
 	return nil
+}
+
+func getInitFiles() map[string]string {
+    //go:embed all:templates
+    var templateFolder embed.FS
+
+    var templates map[string]string
+    files, err := templateFolder.ReadDir("templates")
+    if err != nil {
+        panic(err)
+    }
+
+    for _, file := range files {
+        filename := file.Name()
+        contents, _ := templateFolder.ReadFile(filename)
+        templates[filename] = string(contents)
+    }
+
+    return templates
 }
 
 func (app *App) initPaths(paths AppPaths) error {
@@ -69,9 +80,9 @@ func (app *App) initPaths(paths AppPaths) error {
 	return nil
 }
 
-func (app *App) checkFiles(filenames []string, replacements map[string]string) error {
-	for _, filename := range filenames {
-		if err := app.checkFile(filename, replacements); err != nil {
+func (app *App) checkFiles(files map[string]string, replacements map[string]string) error {
+	for filename, contents := range files{
+		if err := app.checkFile(filename, contents, replacements); err != nil {
 			return err
 		}
 	}
@@ -79,26 +90,12 @@ func (app *App) checkFiles(filenames []string, replacements map[string]string) e
 	return nil
 }
 
-func (app *App) checkFile(filename string, replacements map[string]string) error {
-
+func (app *App) checkFile(filename string, contents string, replacements map[string]string) error {
 	outpath := path.Join(app.Paths.Root, filename)
 	if err := utils.UpsertFile(outpath); err != nil {
 		return err
 	}
 
-	templatePath, err := getTemplatePath(filename)
-	if err != nil {
-		return err
-	}
-
-	return utils.CopyTemplateFile(templatePath, outpath, replacements)
+	return utils.CopyTemplateFile(filename, contents, outpath, replacements)
 }
 
-func getTemplatePath(filename string) (string, error) {
-	pwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	return path.Join(pwd, "cli", "templates", filename), nil
-}
