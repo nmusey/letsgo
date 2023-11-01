@@ -1,4 +1,4 @@
-package cli
+package letsgo
 
 import (
     "embed"
@@ -17,6 +17,9 @@ type AppPaths struct {
 	Root    string
 	folders []string
 }
+
+//go:embed all:templates
+var templateFolder embed.FS
 
 func NewApp(name string, repo string, root string) error {
 	paths := AppPaths{
@@ -50,9 +53,6 @@ func NewApp(name string, repo string, root string) error {
 }
 
 func getInitFiles() map[string]string {
-    //go:embed all:templates
-    var templateFolder embed.FS
-
     var templates map[string]string
     files, err := templateFolder.ReadDir("templates")
     if err != nil {
