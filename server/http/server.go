@@ -43,7 +43,7 @@ func (s *Server) RegisterHandler(handler *Handler) {
         if err := handler.Callback(ctx); err != nil {
             errorMessage := "Internal Server Error"
             if os.Getenv("ENVIRONMENT") == "dev" {
-                err.Error() 
+                errorMessage = err.Error() 
             }
 
             ctx.SetStatus(http.StatusInternalServerError)
