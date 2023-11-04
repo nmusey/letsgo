@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"embed"
-	"fmt"
 	"path"
 
 	"github.com/nmusey/letsgo/cli/utils"
@@ -54,7 +53,6 @@ func (app App) readDirectory(directory string) map[string]string {
     templates := make(map[string]string)
     for _, file := range files {
         filepath := path.Join(directory, file.Name())
-        fmt.Println(filepath)
 
         if app.isEmbeddedDirectory(filepath) {
             app.initializeDirectory(filepath)
