@@ -22,6 +22,9 @@ type AppPaths struct {
 //go:embed templates/*
 var templateFolder embed.FS
 
+//go:embed templates/data/*
+var dataFolder embed.FS
+
 func NewApp(name string, repo string, root string) error {
 	paths := AppPaths{
 		Root:    path.Join(root, name),
@@ -37,32 +40,38 @@ func NewApp(name string, repo string, root string) error {
 	if err := app.initPaths(paths); err != nil {
 		return err
 	}
-
-	initFiles := getInitFiles()
     
+    templateDirectories := map[string]embed.FS {
+        "templates": templateFolder, 
+        "templates/data": dataFolder,
+   }
+
 	replacements := map[string]string{
 		"$appName": app.Name,
 		"$appRepo": repo,
 		"$dbPort":  "5432",
 	}
 
-	if err := app.checkFiles(initFiles, replacements); err != nil {
-		return err
-	}
+    for directory, fs := range templateDirectories {
+        files := getInitFiles(directory, fs)    
+        if err := app.checkFiles(files, replacements); err != nil {
+            return err
+        }
+    }
 
 	return nil
 }
 
-func getInitFiles() map[string]string {
+func getInitFiles(directory string, fs embed.FS) map[string]string {
     templates := make(map[string]string)
-    files, err := templateFolder.ReadDir("templates")
+    files, err := fs.ReadDir(directory)
     if err != nil {
         panic(err)
     }
 
     for _, file := range files {
         filename := file.Name()
-        contents, _ := templateFolder.ReadFile(filename)
+        contents, _ := fs.ReadFile(path.Join(directory, filename))
         templates[filename] = string(contents)
     }
 
@@ -99,10 +108,6 @@ func (app *App) checkFile(filename string, contents string, replacements map[str
         dir := filepath.Dir(outpath)
         outpath = filepath.Join(dir, "go.mod")
     }
-
-	if err := utils.UpsertFile(outpath); err != nil {
-		return err
-	}
 
 	return utils.CopyTemplateFile(contents, outpath, replacements)
 }
