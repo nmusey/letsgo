@@ -3,5 +3,10 @@
 A tool to help build go web applications quickly.
 
 ## Usage
-letsgo make $projectname
-Due to current limitations with embedded files you have to run `go mod init` manually, then `go get github.com/nmusey/letsgo/server`.
+```letsgo make $projectname $projectRepository```
+
+Example:
+```letsgo make something-cool github.com/nmusey/something-cool```
+
+Everything is Dockerized so you shouldn't have to install any dependencies, that's taken care of by the container.
+
