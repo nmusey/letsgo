@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"embed"
+	"fmt"
 	"path"
-	"path/filepath"
 
 	"github.com/nmusey/letsgo/cli/utils"
 )
@@ -11,104 +11,97 @@ import (
 type App struct {
 	Name  string
     Repo string
-	Paths AppPaths
-}
-
-type AppPaths struct {
-	Root    string
-	folders []string
+    Root string	
+    Replacements map[string]string
+    Filesystem embed.FS
 }
 
 //go:embed templates/*
-var templateFolder embed.FS
-
-//go:embed templates/data/*
-var dataFolder embed.FS
+var filesystem embed.FS
 
 func NewApp(name string, repo string, root string) error {
-	paths := AppPaths{
-		Root:    path.Join(root, name),
-		folders: []string{},
-	}
-
 	app := App{
 		Name:  name,
         Repo: repo,
-		Paths: paths,
+        Root: path.Join(root, name),
+        Replacements: map[string]string{
+            "$appName": name,
+            "$appRepo": repo,
+            "$dbPort":  "5432",
+	    },
+        Filesystem: filesystem,
 	}
 
-	if err := app.initPaths(paths); err != nil {
-		return err
-	}
-    
-    templateDirectories := map[string]embed.FS {
-        "templates": templateFolder, 
-        "templates/data": dataFolder,
-   }
-
-	replacements := map[string]string{
-		"$appName": app.Name,
-		"$appRepo": repo,
-		"$dbPort":  "5432",
-	}
-
-    for directory, fs := range templateDirectories {
-        files := getInitFiles(directory, fs)    
-        if err := app.checkFiles(files, replacements); err != nil {
-            return err
-        }
-    }
-
-	return nil
+    return app.initializeDirectory("")
 }
 
-func getInitFiles(directory string, fs embed.FS) map[string]string {
-    templates := make(map[string]string)
-    files, err := fs.ReadDir(directory)
+func (app App) initializeDirectory(directory string) error {
+    utils.UpsertFolder(path.Join(app.Root, directory))
+    files := app.readDirectory(directory)
+    if err := app.copyFiles(files, directory); err != nil {
+        return err
+    }
+    
+    return nil
+}
+
+func (app App) readDirectory(directory string) map[string]string {
+    files, err := app.Filesystem.ReadDir(app.getTemplatePath(directory))
     if err != nil {
         panic(err)
     }
 
+    templates := make(map[string]string)
     for _, file := range files {
-        filename := file.Name()
-        contents, _ := fs.ReadFile(path.Join(directory, filename))
-        templates[filename] = string(contents)
+        filepath := path.Join(directory, file.Name())
+        fmt.Println(filepath)
+
+        if app.isEmbeddedDirectory(filepath) {
+            app.initializeDirectory(filepath)
+            continue
+        }
+
+        contents, _ := app.Filesystem.ReadFile(app.getTemplatePath(filepath))
+        templates[filepath] = string(contents)
     }
 
     return templates
 }
 
-func (app *App) initPaths(paths AppPaths) error {
-	utils.UpsertFolder(paths.Root)
-	for _, dir := range paths.folders {
-		dirPath := path.Join(paths.Root, dir)
-		if err := utils.UpsertFolder(dirPath); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (app *App) checkFiles(files map[string]string, replacements map[string]string) error {
-	for filename, contents := range files{
-		if err := app.checkFile(filename, contents, replacements); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (app *App) checkFile(filename string, contents string, replacements map[string]string) error {
-	outpath := path.Join(app.Paths.Root, filename)
-
-    // We need to treat go.mod specially because it can't be embedded directly
-    if filepath.Base(outpath) == "go_mod" {
-        dir := filepath.Dir(outpath)
-        outpath = filepath.Join(dir, "go.mod")
+func (app App) isEmbeddedDirectory(filepath string) bool {
+    fsFile, err := app.Filesystem.Open(app.getTemplatePath(filepath))
+    if err != nil {
+        return false
     }
 
-	return utils.CopyTemplateFile(contents, outpath, replacements)
+    fileStats, err := fsFile.Stat()
+    if err != nil {
+        return false
+    }
+
+    return fileStats.IsDir()
 }
 
+func (app *App) copyFiles(files map[string]string, directory string) error {
+	for filepath, contents := range files {
+        // We need to treat go.mod specially because it can't be embedded directly
+        if path.Base(filepath) == "go_mod" {
+            filepath = path.Join(path.Dir(filepath), "go.mod")
+        }
+
+		if err := app.copyFile(filepath, contents); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (app *App) copyFile(filepath string, contents string) error {
+	outpath := path.Join(app.Root, filepath)
+	return utils.CopyTemplateFile(contents, outpath, app.Replacements)
+}
+
+func (app *App) getTemplatePath(filepath string) string {
+    return path.Join("templates", filepath)
+}
