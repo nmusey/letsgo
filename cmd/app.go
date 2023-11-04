@@ -1,10 +1,11 @@
 package cmd
 
 import (
-    "embed"
+	"embed"
 	"path"
+	"path/filepath"
 
-    "github.com/nmusey/letsgo/cli/utils"
+	"github.com/nmusey/letsgo/cli/utils"
 )
 
 type App struct {
@@ -92,10 +93,17 @@ func (app *App) checkFiles(files map[string]string, replacements map[string]stri
 
 func (app *App) checkFile(filename string, contents string, replacements map[string]string) error {
 	outpath := path.Join(app.Paths.Root, filename)
+
+    // We need to treat go.mod specially because it can't be embedded directly
+    if filepath.Base(outpath) == "go_mod" {
+        dir := filepath.Dir(outpath)
+        outpath = filepath.Join(dir, "go.mod")
+    }
+
 	if err := utils.UpsertFile(outpath); err != nil {
 		return err
 	}
 
-	return utils.CopyTemplateFile(filename, contents, outpath, replacements)
+	return utils.CopyTemplateFile(contents, outpath, replacements)
 }
 
