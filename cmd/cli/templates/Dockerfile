@@ -8,6 +8,6 @@ COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
 COPY . .
-RUN go build -o main .
+RUN go build -o main cmd/http/*.go
 
 CMD ["air", "-c", ".air.toml"]
