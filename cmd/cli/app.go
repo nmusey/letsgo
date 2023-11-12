@@ -1,10 +1,10 @@
-package cmd
+package cli
 
 import (
 	"embed"
 	"path"
 
-	"github.com/nmusey/letsgo/cli/utils"
+    "github.com/nmusey/letsgo/internal/utils"
 )
 
 type App struct {

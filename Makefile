@@ -1,2 +1,3 @@
 build:
-	go build -o letsgo main.go
+	go build -o letsgo ./cmd/cli/main/main.go
+	chmod +x letsgo

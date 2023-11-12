@@ -1,6 +1,8 @@
 package utils
 
-import "strings"
+import (
+    "strings"
+)
 
 func ReplaceAllInString(str string, replacements map[string]string) string {
 	replacementArray := []string{}

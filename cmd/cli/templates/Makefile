@@ -2,4 +2,4 @@ run:
 	docker compose up --build
 
 build:
-	go build -o $appName main.go
+	go build -o $appName cmd/http/main.go
