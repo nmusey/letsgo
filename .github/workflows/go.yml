@@ -22,4 +22,7 @@ jobs:
         go-version: '1.20'
 
     - name: Build
-      run: go build -v -o letsgo main.go
+      run: make build
+
+    - name: Test
+      run: make test
