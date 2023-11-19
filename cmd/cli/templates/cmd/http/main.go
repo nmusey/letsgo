@@ -4,7 +4,7 @@ import (
     "github.com/gofiber/fiber/v2"
 
     "$appRepo/pkg/core"
-    "$appRepo/pkg/users"
+    "$appRepo/pkg/handlers"
 )
 
 func main() {
