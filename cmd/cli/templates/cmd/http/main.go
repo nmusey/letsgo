@@ -19,7 +19,7 @@ func main() {
     }
 
 
-    users.NewHandler().RegisterRoutes(&ctx)
+    users.NewUsersHandler(&ctx).RegisterRoutes()
     
     app.Listen(":8080")
 }

@@ -8,19 +8,21 @@ import (
 )
 
 type UserHandler struct {
+    ctx    *core.RouterContext
     Service *services.UserService
 }
 
-func NewHandler(ctx *core.RouterContext) *UserHandler {
+func NewUserHandler(ctx *core.RouterContext) *UserHandler {
     return &UserHandler{
+        ctx: ctx,
         Service: services.NewService(ctx),
     }
 }
 
-func (h UserHandler) RegisterRoutes(app *fiber.App) {
-    app.Post("/users", h.SaveUser)
-    app.Get("/users", h.GetUsers)
-    app.Get("/users/:id", h.GetUserByID)
+func (h UserHandler) RegisterRoutes() {
+    h.ctx.App.Post("/users", h.SaveUser)
+    h.ctx.App.Get("/users", h.GetUsers)
+    h.ctx.App.Get("/users/:id", h.GetUserByID)
 }
 
 func (h UserHandler) SaveUser(c *fiber.Ctx) error {
