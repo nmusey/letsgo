@@ -53,6 +53,5 @@ func MigrateDatabase(db *sql.DB) error {
         return err
     }
 
-    fmt.Println("Migration complete")
     return nil
 }
