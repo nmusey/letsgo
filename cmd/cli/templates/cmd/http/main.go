@@ -14,13 +14,13 @@ func main() {
         panic(err)
     }
 
-    ctx := core.Context{
+    ctx := core.RouterContext{
         App: app,
         DB: db,
     }
 
 
-    handlers.NewUsersHandler(&ctx).RegisterRoutes()
+    handlers.NewUserHandler(&ctx).RegisterRoutes()
     
     app.Listen(":8080")
 }
