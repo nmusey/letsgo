@@ -15,11 +15,12 @@ func main() {
     }
 
     ctx := core.Context{
+        App: app,
         DB: db,
     }
 
 
-    users.NewUsersHandler(&ctx).RegisterRoutes()
+    handlers.NewUsersHandler(&ctx).RegisterRoutes()
     
     app.Listen(":8080")
 }
