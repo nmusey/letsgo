@@ -18,14 +18,14 @@ func NewService(ctx *core.RouterContext) *UserService {
 }
 
 func (u UserService) SaveUser(user models.User) error {
-    return core.Write(u.DB, "INSERT INTO users (username) VALUES ($1)", user.Username)
+    return core.Write(u.DB, "INSERT INTO users (username, email) VALUES ($1, $2)", user.Username, user.Email)
 }
 
 func (u UserService) GetUsers() ([]models.User, error) {
     var users []models.User
-    return users, core.Read(u.DB, "SELECT * FROM users", func(rows *sql.Rows) error { 
+    return users, core.Read(u.DB, "SELECT id, username, email FROM users", func(rows *sql.Rows) error { 
         var user models.User
-        if err := rows.Scan(&user.ID, &user.Username); err != nil {
+        if err := rows.Scan(&user.ID, &user.Username, &user.Email); err != nil {
             return err
         }
 
@@ -36,8 +36,8 @@ func (u UserService) GetUsers() ([]models.User, error) {
 
 func (u UserService) GetUserByID(id int) (models.User, error) {
     var user models.User
-    return user, core.ReadOne(u.DB, "SELECT * FROM users WHERE id = $1", func(row *sql.Row) error {
-        if err := row.Scan(&user.ID, &user.Username); err != nil {
+    return user, core.ReadOne(u.DB, "SELECT id, username, email FROM users WHERE id = $1", func(row *sql.Row) error {
+        if err := row.Scan(&user.ID, &user.Username, &user.Email); err != nil {
             return err
         }
 
