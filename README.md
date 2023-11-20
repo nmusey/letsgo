@@ -17,6 +17,10 @@ Example:
 
 Everything is Dockerized so you shouldn't have to install any dependencies, that's taken care of by the container.
 
+### Migrations
+`letsgo` uses [migrate](https://github.com/golang-migrate/migrate) for database migrations. By default these are run every time you restart the server.
+
+
 ## Future Features
 - Support for caching databases is planned
 - Support for other databases is possible

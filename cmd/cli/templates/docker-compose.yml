@@ -27,3 +27,4 @@ services:
           - "${DB_PORT}:$dbPort"
         volumes: 
           - ./db_data:/var/lib/postgresql/data
+          - ./migrations:/migrations

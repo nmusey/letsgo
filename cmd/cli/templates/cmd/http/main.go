@@ -14,6 +14,10 @@ func main() {
         panic(err)
     }
 
+    if err := core.MigrateDatabase(db); err != nil {
+        panic(err)
+    }
+
     ctx := core.RouterContext{
         App: app,
         DB: db,
