@@ -11,8 +11,8 @@ type UserService struct {
     DB *sql.DB
 }
 
-func NewService(ctx *core.RouterContext) *UserService {
-    return &UserService{
+func NewUserService(ctx *core.RouterContext) UserService {
+    return UserService{
         DB: ctx.DB,
     }
 }
@@ -44,3 +44,15 @@ func (u UserService) GetUserByID(id int) (models.User, error) {
         return nil
     }, id)
 }
+
+func (u UserService) GetUserByEmail(email string) (models.User, error) {
+    var user models.User
+    return user, core.ReadOne(u.DB, "SELECT id FROM users WHERE email = $1", func(row *sql.Row) error {
+        if err := row.Scan(&user.ID); err != nil {
+            return err
+        }
+
+        return nil
+    }, email)
+}
+

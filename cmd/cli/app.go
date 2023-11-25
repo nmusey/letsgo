@@ -15,7 +15,7 @@ type App struct {
     Filesystem embed.FS
 }
 
-//go:embed templates/*
+//go:embed _templates/*
 var filesystem embed.FS
 
 func NewApp(name string, repo string, root string) error {
@@ -101,5 +101,5 @@ func (app *App) copyFile(filepath string, contents string) error {
 }
 
 func (app *App) getTemplatePath(filepath string) string {
-    return path.Join("templates", filepath)
+    return path.Join("_templates", filepath)
 }
