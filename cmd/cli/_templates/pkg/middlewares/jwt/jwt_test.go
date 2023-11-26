@@ -5,11 +5,19 @@ import (
 	"time"
 
 	"$appRepo/pkg/core"
-    "$appRepo/pkg/services"
+    "$appRepo/pkg/models"
 
 	golangJwt "github.com/golang-jwt/jwt/v4"
 	"github.com/stretchr/testify/assert"
 )
+
+type MockUserService struct{}
+
+func (s MockUserService) GetUserByID(id int) (models.User, error) {
+    return models.User{
+        ID: id,
+    }, nil
+}
 
 func TestNewConfig(t *testing.T) {
     ctx := &core.RouterContext{}
@@ -18,7 +26,7 @@ func TestNewConfig(t *testing.T) {
     assert.NotNil(t, config.Unauthorized)
     assert.NotNil(t, config.Decode)
     assert.Equal(t, "testsecret", config.Secret)
-    assert.NotNil(t, config.UserService)
+    assert.NotNil(t, config.UserFetcher)
     assert.Equal(t, int(time.Now().Add(time.Hour * 24).Unix()), config.Expiry)
 }
 
@@ -50,7 +58,7 @@ func TestNew(t *testing.T) {
         Unauthorized: defaultUnauthorized,
         Decode:       makeDecoder("testsecret"),
         Secret:       "testsecret",
-        UserService:  &services.UserService{},
+        UserFetcher:  &MockUserService{},
     }
 
     _ = New(config)
