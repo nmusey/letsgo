@@ -5,8 +5,12 @@ build:
 test:
 	go test -v ./internal/... 
 
+clean:
+	rm -rf ./letsgo
+	rm -rf ./test
+
 test-generated:
 	make build
 	./letsgo make test test
-	(cd ./test && make test)
-	rm -rf ./test
+	(cd ./test && go mod tidy && make test)
+	make clean

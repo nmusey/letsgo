@@ -2,14 +2,14 @@ package main
 
 import (
 	"os"
-    "time"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
-    "github.com/gofiber/template/handlebars/v2"
+	"github.com/gofiber/template/handlebars/v2"
 
 	"$appRepo/pkg/core"
 	"$appRepo/pkg/handlers"
-    "$appRepo/pkg/middlewares/jwt"
+	"$appRepo/pkg/middlewares/jwt"
 )
 
 func main() {
@@ -17,11 +17,18 @@ func main() {
         Views: handlebars.New("views", ".hbs.html"),
     })
 
-    db, err := core.ConnectToDatabase()
+    dbConfig := core.DatabaseConfig{
+        Host: os.Getenv("DB_HOST"),
+        Port: os.Getenv("DB_PORT"),
+        User: os.Getenv("DB_USER"),
+        Password: os.Getenv("DB_PASS"),
+        Name: os.Getenv("DB_NAME"),
+    }
+    db, err := core.ConnectToDatabase(dbConfig)
     if err != nil {
         // Try again in 5 seconds, in case database is still booting up.
         time.Sleep(5 * time.Second)
-        db, err = core.ConnectToDatabase()
+        db, err = core.ConnectToDatabase(dbConfig)
         if err != nil {
             panic(err)
         }
@@ -36,7 +43,8 @@ func main() {
         DB: db,
     }
 
-    app.Use(jwt.New(jwt.DefaultConfig(&ctx)))
+    jwtSecret := os.Getenv("JWT_SECRET")
+    app.Use(jwt.New(jwt.NewConfig(&ctx, jwtSecret)))
 
     handlers.NewUserHandler(&ctx).RegisterRoutes()
     handlers.NewAuthHandler(&ctx).RegisterRoutes()

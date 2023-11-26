@@ -1,56 +1,64 @@
 package jwt
 
 import (
-	"os"
+    "errors"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 	"$appRepo/pkg/core"
-	"$appRepo/pkg/services"
+    "$appRepo/pkg/models"
+    "$appRepo/pkg/services"
 )
 
 type Config struct {
-	Filter          func(c *fiber.Ctx) bool
-	Decode          func(c *fiber.Ctx) (*jwt.MapClaims, error)
-    Unauthorized    fiber.Handler
-	Secret          string
-	Expiry          int
-    UserService     services.UserService
+    Filter       func(c *fiber.Ctx) bool
+    Decode       func(c *fiber.Ctx) (*jwt.MapClaims, error)
+    Unauthorized fiber.Handler
+    Secret       string
+    Expiry       int
+    UserService  interface{GetUserByID(userID int) (models.User, error)}
 }
 
-func DefaultConfig(ctx *core.RouterContext) Config {
-    secret := os.Getenv("JWT_SECRET")
+func NewConfig(ctx *core.RouterContext, secret string) Config {
     return Config{
-        Filter: func(c *fiber.Ctx) bool {
-            excluded := []string{"/login", "/register", "/logout"}
-            for _, path := range excluded {
-                if path == c.Path() {
-                    return true
-                }
-            }
+        Filter:       defaultFilter,
+        Unauthorized: defaultUnauthorized,
+        Decode:       makeDecoder(secret),
+        Secret:       secret,
+        Expiry:       int(time.Now().Add(time.Hour * 24).Unix()),
+        UserService:  services.NewUserService(ctx),
+    }
+}
 
-            return false
-        },
-        Unauthorized: func(c *fiber.Ctx) error {
-            return c.Redirect("/login")
-        },
-        Decode: func(c *fiber.Ctx) (*jwt.MapClaims, error) {
-            token := c.Cookies("jwt")
-            claims := jwt.MapClaims{}
-            _, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (interface{}, error) {
-                return []byte(secret), nil
-            })
+func defaultFilter(c *fiber.Ctx) bool {
+    excluded := []string{"/login", "/register", "/logout"}
+    for _, path := range excluded {
+        if path == c.Path() {
+            return true
+        }
+    }
 
-            if err != nil {
-                return nil, err
-            }
+    return false
+}
 
-            return &claims, nil
-        },
-        Secret: secret,
-        Expiry: int(time.Now().Add(time.Hour * 24).Unix()),
-        UserService: services.NewUserService(ctx),
+func defaultUnauthorized(c *fiber.Ctx) error {
+    return c.Redirect("/login")
+}
+
+func makeDecoder(secret string) func(c *fiber.Ctx) (*jwt.MapClaims, error) {
+    return func(c *fiber.Ctx) (*jwt.MapClaims, error) {
+        token := c.Cookies("jwt")
+        claims := jwt.MapClaims{}
+        _, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (interface{}, error) {
+            return []byte(secret), nil
+        })
+
+        if err != nil {
+            return nil, err
+        }
+
+        return &claims, nil
     }
 }
 
@@ -65,17 +73,31 @@ func New(config Config) fiber.Handler {
             return config.Unauthorized(c)
         }
 
-        var userId interface{} = (*claims)["uid"]
-        if userId == nil {
+        userID, err := extractUserID(claims)
+        if err != nil {
             return config.Unauthorized(c)
         }
 
-        user, err := config.UserService.GetUserByID(int(userId.(float64)))
+        user, err := config.UserService.GetUserByID(userID)
         if user.ID == 0 || err != nil {
             return config.Unauthorized(c)
         }
 
         c.Locals("user", user)
         return c.Next()
-    } 
+    }
+}
+
+func extractUserID(claims *jwt.MapClaims) (int, error) {
+    userIDValue, ok := (*claims)["uid"]
+    if !ok {
+        return 0, errors.New("user ID not found in claims")
+    }
+
+    userID, ok := userIDValue.(float64) // JWT decodes numbers as float64
+    if !ok {
+        return 0, errors.New("user ID is not a valid number")
+    }
+
+    return int(userID), nil
 }
