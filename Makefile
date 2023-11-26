@@ -12,5 +12,5 @@ clean:
 test-generated:
 	make build
 	./letsgo make test test
-	(cd ./test && go mod tidy && make test)
+	(cd ./test && make test)
 	make clean
