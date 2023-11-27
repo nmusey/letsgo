@@ -81,7 +81,7 @@ func (db Database) Migrate() error {
     return nil
 }
 
-func (db Database) ReadOne(model IModel, condition string, arguments ...any) error {
+func (db Database) SelectOne(model IModel, condition string, arguments ...any) error {
     query := fmt.Sprintf("SELECT %s FROM %s WHERE %s", model.Columns(), model.Table(), condition)
     row := db.DB.QueryRow(query, arguments...)
     if row.Err() != nil {
@@ -91,11 +91,11 @@ func (db Database) ReadOne(model IModel, condition string, arguments ...any) err
     return row.Scan(model.Populate())
 }
 
-func (db Database) Read(model IModel, condition string, arguments ...any) error {
+func (db Database) Select(model IModel, condition string, arguments ...any) ([]IModel, error) {
     query := fmt.Sprintf("SELECT %s FROM %s %s", model.Columns(), model.Table(), condition)
     rows, err := db.DB.Query(query, arguments...)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
     defer rows.Close()
@@ -103,10 +103,10 @@ func (db Database) Read(model IModel, condition string, arguments ...any) error 
 	}
 
 	if err = rows.Err(); err != nil {
-		return err
+		return nil, err
 	}
 
-    return nil
+    return nil, nil
 }
 
 func (db Database) Insert(model IModel) error {

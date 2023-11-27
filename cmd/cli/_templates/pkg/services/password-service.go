@@ -1,10 +1,9 @@
 package services
 
 import (
-    "database/sql"
-
     "golang.org/x/crypto/bcrypt"
 	"$appRepo/pkg/core"
+    "$appRepo/pkg/models"
 )
 
 type PasswordService struct {
@@ -23,24 +22,21 @@ func (s PasswordService) SavePassword(password string, userId int) error {
         return err
     }
 
-    return core.Write(s.ctx.DB, "INSERT INTO passwords (user_id, password) VALUES ($1, $2)", userId, hashed)
+    passwordObj := models.Password{
+        Password: hashed,
+        UserID: userId,
+    }
+
+    return s.ctx.DB.Insert(passwordObj)
 }
 
 func (s PasswordService) CheckPassword(password string, userId int) (bool, error) {
-    var hashed string
-    err := core.Read(s.ctx.DB, "SELECT password FROM passwords WHERE user_id=$1", func (row *sql.Rows) error {
-        if err := row.Scan(&hashed); err != nil {
-            return err
-        }
-
-        return nil
-    }, userId)
-
-    if err != nil {
+    passwordObj := models.Password{}
+    if err := s.ctx.DB.SelectOne(&passwordObj, "user_id = $1", userId); err != nil {
         return false, err
     }
 
-    return s.checkPasswordHash(password, hashed), nil
+    return s.checkPasswordHash(password, passwordObj.Password), nil
 }
 
 func (s PasswordService) hashPassword(password string) (string, error) {
