@@ -5,6 +5,7 @@ import (
     "fmt"
     "os"
 
+    "github.com/jmoiron/sqlx"
     "github.com/golang-migrate/migrate/v4"
     "github.com/golang-migrate/migrate/v4/database/postgres"
     _ "github.com/golang-migrate/migrate/v4/source/file"
@@ -12,7 +13,8 @@ import (
 )
 
 type Database struct {
-    DB      *sql.DB
+    DB      *sqlx.DB
+    sqlDB   *sql.DB
     Config  DatabaseConfig
 }
 
@@ -44,21 +46,20 @@ func (db *Database) Connect() error {
         db.Config.Name,
     )
 
-    connection, err := sql.Open("postgres", connectionString)
+    sqlConnection, err := sql.Open("postgres", connectionString)
     if err != nil {
         return err
     }
 
-    if err := connection.Ping(); err != nil {
-        return err
-    }
+    connection, err := sqlx.Connect("postgres", connectionString)
 
     db.DB = connection
+    db.sqlDB = sqlConnection
     return nil
 }
 
 func (db Database) Migrate() error {
-    driver, err := postgres.WithInstance(db.DB, &postgres.Config{})
+    driver, err := postgres.WithInstance(db.sqlDB, &postgres.Config{})
     if err != nil {
         return err
     }
@@ -81,66 +82,14 @@ func (db Database) Migrate() error {
     return nil
 }
 
-func (db Database) SelectOne(model IModel, condition string, arguments ...any) error {
-    query := fmt.Sprintf("SELECT %s FROM %s WHERE %s", model.Columns(), model.Table(), condition)
-    row := db.DB.QueryRow(query, arguments...)
-    if row.Err() != nil {
-        return row.Err()
-    }
-
-    return row.Scan(model.Populate())
+func (db Database) Select(query string, args ...interface{}) (*sqlx.Rows, error) {
+    return db.DB.Queryx(query, args...)
 }
 
-func (db Database) Select(model IModel, condition string, arguments ...any) ([]IModel, error) {
-    query := fmt.Sprintf("SELECT %s FROM %s %s", model.Columns(), model.Table(), condition)
-    rows, err := db.DB.Query(query, arguments...)
-	if err != nil {
-		return nil, err
-	}
-
-    defer rows.Close()
-	for rows.Next() {
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-
-    return nil, nil
+func (db Database) SelectOne(dest interface{}, query string, args ...interface{}) error {
+    return db.DB.Get(dest, query, args...)
 }
 
-func (db Database) Insert(model IModel) error {
-    query := fmt.Sprintf(
-        "INSERT INTO %s (%s) VALUES (%s)", 
-        model.Table(), 
-        model.Columns(), 
-        createColumnPlaceholders(model),
-    )
-
-    _, err := db.DB.Exec(query, model.ColumnValues()...)
-    return err
-}
-
-func (db Database) Update(model IModel, query string, arguments ...any) error {
-    _, err := db.DB.Exec(query, arguments...)
-    return err
-}
-
-func (db Database) Delete(model IModel, condition string, arguments ...any) error {
-    query := fmt.Sprintf("DELETE FROM %s WHERE %s", model.Table(), condition)
-    _, err := db.DB.Exec(query, arguments...)
-    return err
-}
-
-func createColumnPlaceholders(model IModel) string {
-    columns := model.Columns()
-    columnPlaceholders := ""
-    for i := 0; i < len(columns); i++ {
-        columnPlaceholders += fmt.Sprintf("$%d", i + 1)
-        if i < len(columns) - 1 {
-            columnPlaceholders += ", "
-        }
-    }
-
-    return columnPlaceholders
+func (db Database) NamedExec(query string, arg interface{}) (sql.Result, error) {
+    return db.DB.NamedExec(query, arg)
 }
