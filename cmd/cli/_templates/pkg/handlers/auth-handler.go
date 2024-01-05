@@ -13,26 +13,28 @@ import (
 )
 
 type AuthHandler struct {
-    ctx *core.RouterContext
-    UserService services.UserService
+    ctx             *core.RouterContext
+    app             *fiber.App
+    UserService     services.UserService
     PasswordService services.PasswordService
 }
 
-func NewAuthHandler(ctx *core.RouterContext) *AuthHandler {
+func NewAuthHandler(ctx *core.RouterContext, app *fiber.App) *AuthHandler {
     return &AuthHandler{
         ctx: ctx,
+        app: app,
         UserService: services.NewUserService(ctx),
     }
 }
 
 func (h AuthHandler) RegisterRoutes() {
-    h.ctx.App.Get("/login", h.GetLogin)
-    h.ctx.App.Get("/register", h.GetRegister)
-    h.ctx.App.Get("/logout", h.PostLogout)
+    h.app.Get("/login", h.GetLogin)
+    h.app.Get("/register", h.GetRegister)
+    h.app.Get("/logout", h.PostLogout)
 
-    h.ctx.App.Post("/login", h.PostLogin)
-    h.ctx.App.Post("/register", h.PostRegister)
-    h.ctx.App.Post("/logout", h.PostLogout)
+    h.app.Post("/login", h.PostLogin)
+    h.app.Post("/register", h.PostRegister)
+    h.app.Post("/logout", h.PostLogout)
 }
 
 func (h AuthHandler) GetLogin(c *fiber.Ctx) error {

@@ -2,7 +2,8 @@ package services
 
 import (
 	"$appRepo/pkg/core"
-    "$appRepo/pkg/models"
+	"$appRepo/pkg/models"
+	"fmt"
 )
 
 type UserService struct {
@@ -16,23 +17,33 @@ func NewUserService(ctx *core.RouterContext) UserService {
 }
 
 func (u UserService) SaveUser(user models.User) error {
-    return u.ctx.DB.Insert(user)
+    query := fmt.Sprintf("INSERT INTO %s VALUES (%s)", user.Table(), user.AllColumns())
+    _, err := u.ctx.DB.NamedExec(query, user)
+    return err
 }
 
 func (u UserService) GetUsers() ([]models.User, error) {
-    users, err := u.ctx.DB.Select(users, "1=1")
-    return users.([]models.User), err
+    user := models.User{}
+    query := fmt.Sprintf("SELECT %s FROM %s", user.AllColumns(), user.Table())
+
+    var users []models.User
+    err := u.ctx.DB.Select(&users, query)
+    return users, err
 }
 
 func (u UserService) GetUserByID(id int) (models.User, error) {
     user := models.User{}
-    err := u.ctx.DB.SelectOne(&user, "id = $1", id)
+    query := fmt.Sprintf("SELECT %s FROM %s WHERE id = $1", user.AllColumns(), user.Table())
+
+    err := u.ctx.DB.SelectOne(&user, query, id)
     return user, err
 }
 
 func (u UserService) GetUserByEmail(email string) (models.User, error) {
     user := models.User{}
-    err := u.ctx.DB.SelectOne(&user, "email = $1", email)
+    query := fmt.Sprintf("SELECT %s FROM %s WHERE email = $1", user.AllColumns(), user.Table())
+
+    err := u.ctx.DB.SelectOne(&user, query, email)
     return user, err
 }
 
