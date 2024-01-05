@@ -6,10 +6,9 @@ type IModel interface {
 }
 
 type RouterContext struct {
-    App *Router
-    DB  *Database
+    DB  Database
 }
 
 type Router interface {
-    RegisterRoutes(ctx *RouterContext)
+    RegisterRoutes()
 }

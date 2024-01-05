@@ -82,8 +82,8 @@ func (db Database) Migrate() error {
     return nil
 }
 
-func (db Database) Select(query string, args ...interface{}) (*sqlx.Rows, error) {
-    return db.DB.Queryx(query, args...)
+func (db Database) Select(dest interface{}, query string, args ...interface{}) error {
+    return db.DB.Select(dest, query, args...)
 }
 
 func (db Database) SelectOne(dest interface{}, query string, args ...interface{}) error {

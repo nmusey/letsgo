@@ -8,8 +8,6 @@ import (
 	"github.com/gofiber/template/handlebars/v2"
 
 	"$appRepo/pkg/core"
-	"$appRepo/pkg/handlers"
-	"$appRepo/pkg/middlewares/jwt"
 )
 
 func main() {
@@ -17,37 +15,33 @@ func main() {
         Views: handlebars.New("views", ".hbs.html"),
     })
 
-    dbConfig := core.DatabaseConfig{
-        Host: os.Getenv("DB_HOST"),
-        Port: os.Getenv("DB_PORT"),
-        User: os.Getenv("DB_USER"),
-        Password: os.Getenv("DB_PASS"),
-        Name: os.Getenv("DB_NAME"),
-    }
-    db, err := core.ConnectToDatabase(dbConfig)
-    if err != nil {
-        // Try again in 5 seconds, in case database is still booting up.
-        time.Sleep(5 * time.Second)
-        db, err = core.ConnectToDatabase(dbConfig)
-        if err != nil {
-            panic(err)
-        }
+    db := core.Database{
+        Config: core.DatabaseConfig{
+            Host: os.Getenv("DB_HOST"),
+            Port: os.Getenv("DB_PORT"),
+            User: os.Getenv("DB_USER"),
+            Password: os.Getenv("DB_PASS"),
+            Name: os.Getenv("DB_NAME"),
+        },
     }
 
-    if err := core.MigrateDatabase(db); err != nil {
+    core.BlockingBackoff(func() error {
+        return db.Connect()
+    }, 5, 3 * time.Second)
+
+    if err := db.Migrate(); err != nil {
         panic(err)
     }
 
     ctx := core.RouterContext{
-        App: app,
         DB: db,
     }
 
-    jwtSecret := os.Getenv("JWT_SECRET")
-    app.Use(jwt.New(jwt.NewConfig(&ctx, jwtSecret)))
+    router := FiberRouter{
+        ctx: &ctx,
+        FiberRouter: app,
+    }
 
-    handlers.NewUserHandler(&ctx).RegisterRoutes()
-    handlers.NewAuthHandler(&ctx).RegisterRoutes()
-
-    app.Listen(os.Getenv("APP_PORT"))
+    router.RegisterRoutes()
+    router.FiberRouter.Listen(os.Getenv("APP_PORT"))
 }

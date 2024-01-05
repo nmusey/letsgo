@@ -2,7 +2,6 @@ package core
 
 import (
 	"os"
-	"strings"
 	"testing"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file"
