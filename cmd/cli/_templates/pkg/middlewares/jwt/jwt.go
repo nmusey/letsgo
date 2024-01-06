@@ -1,46 +1,23 @@
 package jwt
 
 import (
-    "errors"
+	"errors"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
 	"$appRepo/pkg/core"
-    "$appRepo/pkg/models"
-    "$appRepo/pkg/services"
+	"$appRepo/pkg/services"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 )
 
-type IMiddleware interface {
-    Next() error
-    Redirect(path string) error
-    Path() string
-    Cookies(name string) string
-    Locals(key string, value interface{})
-}
-
-type IRedirecter interface {
-    Redirect(path string) error
-}
-
-type IPathGetter interface {
-    Path() string
-}
-
-type ICookieHolder interface {
-    Cookies(name string) string
-}
-
-type IUserFetcher interface {
-    GetUserByID(id int) (models.User, error)
-}
-
 type Config struct {
-    Filter       func(c IPathGetter) bool
-    Decode       func(c ICookieHolder) (*jwt.MapClaims, error)
-    Unauthorized func(c IRedirecter) error
+    Filter       func(c *fiber.Ctx) bool
+    Decode       func(c *fiber.Ctx) (*jwt.MapClaims, error)
+    Unauthorized func(c *fiber.Ctx) error
     Secret       string
     Expiry       int
-    UserFetcher  IUserFetcher
+    UserFetcher  services.UserService
 }
 
 func NewConfig(ctx *core.RouterContext, secret string) Config {
@@ -54,7 +31,7 @@ func NewConfig(ctx *core.RouterContext, secret string) Config {
     }
 }
 
-func defaultFilter(c IPathGetter) bool {
+func defaultFilter(c *fiber.Ctx) bool {
     excluded := []string{"/login", "/register", "/logout"}
     for _, path := range excluded {
         if path == c.Path() {
@@ -65,12 +42,12 @@ func defaultFilter(c IPathGetter) bool {
     return false
 }
 
-func defaultUnauthorized(c IRedirecter) error {
+func defaultUnauthorized(c *fiber.Ctx) error {
     return c.Redirect("/login")
 }
 
-func makeDecoder(secret string) func(c ICookieHolder) (*jwt.MapClaims, error) {
-    return func(c ICookieHolder) (*jwt.MapClaims, error) {
+func makeDecoder(secret string) func(c *fiber.Ctx) (*jwt.MapClaims, error) {
+    return func(c *fiber.Ctx) (*jwt.MapClaims, error) {
         token := c.Cookies("jwt")
         claims := jwt.MapClaims{}
         _, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (interface{}, error) {
@@ -85,8 +62,8 @@ func makeDecoder(secret string) func(c ICookieHolder) (*jwt.MapClaims, error) {
     }
 }
 
-func New(config Config) func (c IMiddleware) error {
-    return func(c IMiddleware) error {
+func New(config Config) func (c *fiber.Ctx) error {
+    return func(c *fiber.Ctx) error {
         if config.Filter(c) {
             return c.Next()
         }
