@@ -25,13 +25,8 @@ func main() {
         },
     }
 
-    core.BlockingBackoff(func() error {
-        return db.Connect()
-    }, 5, 3 * time.Second)
-
-    if err := db.Migrate(); err != nil {
-        panic(err)
-    }
+    core.BlockingBackoff(db.Connect, 5, 3 * time.Second)
+    core.BlockingBackoff(db.Migrate, 5, 3 * time.Second)
 
     ctx := core.RouterContext{
         DB: db,
@@ -39,9 +34,9 @@ func main() {
 
     router := FiberRouter{
         ctx: &ctx,
-        FiberRouter: app,
+        FiberApp: app,
     }
 
     router.RegisterRoutes()
-    router.FiberRouter.Listen(os.Getenv("APP_PORT"))
+    router.FiberApp.Listen(os.Getenv("APP_PORT"))
 }

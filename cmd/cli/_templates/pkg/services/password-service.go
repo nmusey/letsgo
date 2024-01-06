@@ -36,7 +36,7 @@ func (s PasswordService) SavePassword(password string, userId int) error {
 
 func (s PasswordService) CheckPassword(password string, userId int) (bool, error) {
     passwordObj := models.Password{}
-    if err := s.ctx.DB.SelectOne(&passwordObj, "user_id = $1", userId); err != nil {
+    if err := s.ctx.DB.Get(&passwordObj, "user_id = $1", userId); err != nil {
         return false, err
     }
 
