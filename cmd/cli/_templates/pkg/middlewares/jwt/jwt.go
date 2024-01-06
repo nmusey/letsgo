@@ -17,7 +17,7 @@ type Config struct {
     Unauthorized func(c *fiber.Ctx) error
     Secret       string
     Expiry       int
-    UserFetcher  services.UserService
+    UserService  services.UserService
 }
 
 func NewConfig(ctx *core.RouterContext, secret string) Config {
@@ -27,7 +27,7 @@ func NewConfig(ctx *core.RouterContext, secret string) Config {
         Decode:       makeDecoder(secret),
         Secret:       secret,
         Expiry:       int(time.Now().Add(time.Hour * 24).Unix()),
-        UserFetcher:  services.NewUserService(ctx),
+        UserService:  services.NewUserService(ctx),
     }
 }
 
@@ -78,7 +78,7 @@ func New(config Config) func (c *fiber.Ctx) error {
             return config.Unauthorized(c)
         }
 
-        user, err := config.UserFetcher.GetUserByID(userID)
+        user, err := config.UserService.GetUserByID(userID)
         if user.ID == 0 || err != nil {
             return config.Unauthorized(c)
         }
