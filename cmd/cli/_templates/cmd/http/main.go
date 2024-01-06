@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -25,7 +26,9 @@ func main() {
         },
     }
 
+    fmt.Println("Connecting to database...")
     core.BlockingBackoff(db.Connect, 5, 3 * time.Second)
+    fmt.Println("Running migrations...")
     core.BlockingBackoff(db.Migrate, 5, 3 * time.Second)
 
     ctx := core.RouterContext{
@@ -38,5 +41,8 @@ func main() {
     }
 
     router.RegisterRoutes()
-    router.FiberApp.Listen(os.Getenv("APP_PORT"))
+
+    port := ":" + os.Getenv("APP_PORT")
+    fmt.Printf("Listening on port %s\n", port)
+    router.FiberApp.Listen(port)
 }
