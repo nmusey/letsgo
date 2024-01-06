@@ -13,7 +13,7 @@ import (
 )
 
 type Database struct {
-    DB      *sqlx.DB
+    *sqlx.DB
     sqlDB   *sql.DB
     Config  DatabaseConfig
 }
@@ -80,16 +80,4 @@ func (db Database) Migrate() error {
     }
 
     return nil
-}
-
-func (db Database) Select(dest interface{}, query string, args ...interface{}) error {
-    return db.DB.Select(dest, query, args...)
-}
-
-func (db Database) SelectOne(dest interface{}, query string, args ...interface{}) error {
-    return db.DB.Get(dest, query, args...)
-}
-
-func (db Database) NamedExec(query string, arg interface{}) (sql.Result, error) {
-    return db.DB.NamedExec(query, arg)
 }

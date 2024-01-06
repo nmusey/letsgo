@@ -35,7 +35,7 @@ func (u UserService) GetUserByID(id int) (models.User, error) {
     user := models.User{}
     query := fmt.Sprintf("SELECT %s FROM %s WHERE id = $1", user.AllColumns(), user.Table())
 
-    err := u.ctx.DB.SelectOne(&user, query, id)
+    err := u.ctx.DB.Get(&user, query, id)
     return user, err
 }
 
@@ -43,7 +43,7 @@ func (u UserService) GetUserByEmail(email string) (models.User, error) {
     user := models.User{}
     query := fmt.Sprintf("SELECT %s FROM %s WHERE email = $1", user.AllColumns(), user.Table())
 
-    err := u.ctx.DB.SelectOne(&user, query, email)
+    err := u.ctx.DB.Get(&user, query, email)
     return user, err
 }
 
