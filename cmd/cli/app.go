@@ -101,5 +101,6 @@ func (app *App) copyFile(filepath string, contents string) error {
 }
 
 func (app *App) getTemplatePath(filepath string) string {
+    // _templates is copied when running make build, so it can sit in the root directory but still run with the limitations of the embed package
     return path.Join("_templates", filepath)
 }
