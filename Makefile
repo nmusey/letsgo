@@ -1,4 +1,5 @@
 build:
+	cp -r _templates ./cmd/cli/
 	go build -o letsgo ./cmd/cli/main/main.go
 	chmod +x letsgo
 
