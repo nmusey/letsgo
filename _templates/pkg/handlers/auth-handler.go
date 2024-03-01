@@ -1,15 +1,16 @@
 package handlers
 
 import (
-    "errors"
-    "os"
-    "time"
+	"errors"
+	"os"
+	"time"
 
-    "github.com/gofiber/fiber/v2"
-    "github.com/golang-jwt/jwt"
-    "$appRepo/pkg/core"
-    "$appRepo/pkg/models"
-    "$appRepo/pkg/services"
+	"github.com/golang-jwt/jwt"
+	"github.com/nmusey/letsgo/_templates/pkg/core"
+
+	"$appRepo/pkg/core"
+	"$appRepo/pkg/models"
+	"$appRepo/pkg/services"
 )
 
 type AuthHandler struct {
@@ -25,17 +26,18 @@ func NewAuthHandler(ctx *core.RouterContext) *AuthHandler {
     }
 }
 
-func (h AuthHandler) GetLogin(c *fiber.Ctx) error {
-    return c.Render("pages/login", fiber.Map{}, "layouts/main")
+func (h AuthHandler) GetLogin(w http.ResponseWriter, r *http.Request) error {
+    return core.RenderTemplate(w, "pages/login", nil)
 }
 
-func (h AuthHandler) GetRegister(c *fiber.Ctx) error {
-    return c.Render("pages/register", fiber.Map{}, "layouts/main")
+func (h AuthHandler) GetRegister(w http.ResponseWriter, r *http.Request) error {
+    return core.RenderTemplate(w, "pages/register", nil)
 }
 
-func (h AuthHandler) PostLogin(c *fiber.Ctx) error {
-    email := c.FormValue("email")
-    password := c.FormValue("password")
+func (h AuthHandler) PostLogin(w http.ResponseWriter, r *http.Request) error {
+    r.ParseForm()
+    email := r.FormValue("email")
+    password := r.FormValue("password")
 
     user, err := h.UserService.GetUserByEmail(email)
     if err != nil {
@@ -47,14 +49,15 @@ func (h AuthHandler) PostLogin(c *fiber.Ctx) error {
         return errors.New("Invalid email or password")
     }
 
-    h.injectJwt(c, user)
-    return c.Redirect("/", fiber.StatusOK)
+    h.injectJwt(w, user)
+    return w.Redirect("/")
 }
 
-func (h AuthHandler) PostRegister(c *fiber.Ctx) error {
+func (h AuthHandler) PostRegister(w http.ResponseWriter, r *http.Request) error {
+    r.ParseForm()
     user := models.User{
-        Email: c.FormValue("email"),
-        Username: c.FormValue("username"),
+        Email: r.FormValue("email"),
+        Username: r.FormValue("username"),
     }
 
     if err := h.UserService.SaveUser(user); err != nil {
@@ -66,21 +69,27 @@ func (h AuthHandler) PostRegister(c *fiber.Ctx) error {
         return err
     }
     
-    password := c.FormValue("password")
+    password := r.FormValue("password")
     if err := h.PasswordService.SavePassword(password, user.ID); err != nil {
         return err
     }
 
-    h.injectJwt(c, user)
-    return c.Redirect("/")
+    h.injectJwt(w, user)
+    return w.Redirect("/")
 }
 
-func (h AuthHandler) PostLogout(c *fiber.Ctx) error {
-    c.ClearCookie("jwt")
-    return c.Redirect("/")
+func (h AuthHandler) PostLogout(w http.ResponseWriter, r *http.Request) error {
+    cookie := &http.Cookie{
+        Name: "jwt",
+        Value: "",
+        MaxAge: -1,
+    }
+
+    http.SetCookie(w, cookie)
+    return w.Redirect("/")
 }
 
-func (h AuthHandler) injectJwt(ctx *fiber.Ctx, user models.User) error {
+func (h AuthHandler) injectJwt(w http.ResponseWriter, user models.User) error {
     expiry := time.Now().Add(time.Hour * 24)
 
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -93,11 +102,12 @@ func (h AuthHandler) injectJwt(ctx *fiber.Ctx, user models.User) error {
         return err
     }
 
-    ctx.Cookie(&fiber.Cookie{
+    cookie := &http.Cookie{
         Name: "jwt",
         Value: tokenString,
         Expires: expiry,
-    })
+    }
 
+    http.SetCookie(w, cookie)
     return nil
 }

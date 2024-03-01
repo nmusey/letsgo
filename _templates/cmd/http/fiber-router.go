@@ -24,6 +24,12 @@ func (r FiberRouter) RegisterRoutes() {
     r.RegisterUserRoutes()
 }
 
+func (r FiberRouter) Serve() {
+    r.FiberApp = fiber.New()
+    r.RegisterRoutes()
+    r.FiberApp.Listen(":8080")
+}
+
 func (fr FiberRouter) RegisterAuthRoutes() {
     handler := handlers.NewAuthHandler(fr.ctx)
 

@@ -5,17 +5,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/handlebars/v2"
-
 	"$appRepo/pkg/core"
 )
 
 func main() {
-    app := fiber.New(fiber.Config{
-        Views: handlebars.New("views", ".hbs.html"),
-    })
-
     db := core.Database{
         Config: core.DatabaseConfig{
             Host: os.Getenv("DB_HOST"),
@@ -37,12 +30,7 @@ func main() {
 
     router := FiberRouter{
         ctx: &ctx,
-        FiberApp: app,
     }
 
-    router.RegisterRoutes()
-
-    port := ":" + os.Getenv("APP_PORT")
-    fmt.Printf("Listening on port %s\n", port)
-    router.FiberApp.Listen(port)
+    router.Serve()
 }

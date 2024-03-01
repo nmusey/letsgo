@@ -18,25 +18,25 @@ func NewUserHandler(ctx *core.RouterContext) *UserHandler {
     }
 }
 
-func (h UserHandler) GetUsers(c *fiber.Ctx) error {
+func (h UserHandler) GetUsers(w httpResponseWriter, r *http.Request) error {
     users, err := h.Service.GetUsers()
     if err != nil {
         return err
     }
 
-    return c.JSON(users)
+    // TODO: Write JSON response with users
+    return nil
 }
 
-func (h UserHandler) GetUserByID(c *fiber.Ctx) error {
-    id, err := c.ParamsInt("id")
-    if err != nil {
-        return err
-    }
+func (h UserHandler) GetUserByID(w httpResponseWriter, r *http.Request) error {
+    // TODO: Populate from request params
+    var id int
 
     user, err := h.Service.GetUserByID(id)
     if err != nil {
         return err
     }
 
-    return c.JSON(user)
+    // TODO: Write JSON response with user
+    return nil
 }

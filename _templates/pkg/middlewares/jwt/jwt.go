@@ -1,20 +1,22 @@
 package jwt
 
+// TODO: Complete refactor is likely needed
+
 import (
 	"errors"
+	"net/http"
 	"time"
 
 	"$appRepo/pkg/core"
 	"$appRepo/pkg/services"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 )
 
 type Config struct {
-    Filter       func(c *fiber.Ctx) bool
-    Decode       func(c *fiber.Ctx) (*jwt.MapClaims, error)
-    Unauthorized func(c *fiber.Ctx) error
+    Filter       func(w http.ResponseWriter, r *http.Request) bool
+    Decode       func(w http.ResponseWriter, r *http.Request) (*jwt.MapClaims, error)
+    Unauthorized func(w http.ResponseWriter, r *http.Request) error
     Secret       string
     Expiry       int
     UserService  services.UserService
@@ -31,10 +33,10 @@ func NewConfig(ctx *core.RouterContext, secret string) Config {
     }
 }
 
-func defaultFilter(c *fiber.Ctx) bool {
+func defaultFilter(w http.ResponseWriter, r *http.Request) bool {
     excluded := []string{"/login", "/register", "/logout"}
     for _, path := range excluded {
-        if path == c.Path() {
+        if path == r.URL.Path {
             return true
         }
     }
@@ -42,13 +44,15 @@ func defaultFilter(c *fiber.Ctx) bool {
     return false
 }
 
-func defaultUnauthorized(c *fiber.Ctx) error {
-    return c.Redirect("/login")
+func defaultUnauthorized(w http.ResponseWriter, r *http.Request) error {
+    return w.Redirect("/login")
 }
 
-func makeDecoder(secret string) func(c *fiber.Ctx) (*jwt.MapClaims, error) {
-    return func(c *fiber.Ctx) (*jwt.MapClaims, error) {
-        token := c.Cookies("jwt")
+func makeDecoder(secret string) func(w http.ResponseWriter, r *http.Request) (*jwt.MapClaims, error) {
+    return func(w http.ResponseWriter, r *http.Request) (*jwt.MapClaims, error) {
+        // TODO: Extract token from request cookie
+        var token string
+
         claims := jwt.MapClaims{}
         _, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (interface{}, error) {
             return []byte(secret), nil
@@ -62,10 +66,10 @@ func makeDecoder(secret string) func(c *fiber.Ctx) (*jwt.MapClaims, error) {
     }
 }
 
-func New(config Config) func (c *fiber.Ctx) error {
-    return func(c *fiber.Ctx) error {
-        if config.Filter(c) {
-            return c.Next()
+func New(config Config) func (w http.ResponseWriter, r *http.Request) error {
+    return func(w http.ResponseWriter, r *http.Request) error {
+        if config.Filter(w, r) {
+            return http.Cookie
         }
 
         claims, err := config.Decode(c)

@@ -11,4 +11,5 @@ type RouterContext struct {
 
 type Router interface {
     RegisterRoutes()
+    Serve()
 }
