@@ -19,3 +19,5 @@ clean:
 	# Clean up the build artifacts
 	rm -rf ./letsgo
 	rm -rf ./test
+
+.PHONY: build build-test test clean
