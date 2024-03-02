@@ -37,7 +37,7 @@ func NewApp(name string, repo string, root string) error {
 func (app App) initializeDirectory(directory string) error {
     utils.UpsertFolder(path.Join(app.Root, directory))
     files := app.readDirectory(directory)
-    if err := app.copyFiles(files, directory); err != nil {
+    if err := app.copyFiles(files); err != nil {
         return err
     }
     
@@ -80,7 +80,7 @@ func (app App) isEmbeddedDirectory(filepath string) bool {
     return fileStats.IsDir()
 }
 
-func (app *App) copyFiles(files map[string]string, directory string) error {
+func (app *App) copyFiles(files map[string]string) error {
 	for filepath, contents := range files {
         // We need to treat go.mod specially because it can't be embedded directly
         if path.Base(filepath) == "go_mod" {
