@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	"github.com/nmusey/letsgo/_templates/pkg/core"
 
 	"$appRepo/pkg/core"
 	"$appRepo/pkg/models"
