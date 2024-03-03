@@ -9,6 +9,12 @@ build-test:
 	make build
 	./letsgo make test test
 
+run-test:
+	# Run a test server for manual testing
+	make build-test
+	(cd test && docker compose up)
+	make clean
+
 test:
 	# Run unit tests on the CLI and the test application
 	go test -v ./internal/... 
@@ -19,5 +25,6 @@ clean:
 	# Clean up the build artifacts
 	rm -rf ./letsgo
 	rm -rf ./test
+	rm -rf ./cmd/cli/_templates
 
 .PHONY: build build-test test clean
