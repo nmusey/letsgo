@@ -28,8 +28,8 @@ services:
         ports:
           - "${DB_PORT}:$dbPort"
         volumes: 
-          - db_data:/var/lib/postgresql/data
+          - dbdata:/var/lib/postgresql/data
           - ./migrations:/migrations
 
 volumes:
-  db_data:
+  dbdata:

@@ -1,6 +1,10 @@
 package layouts
 
-templ mainLayout() {
+import (
+    "$appRepo/views/layouts/partials"
+)
+
+templ MainLayout(children templ.Component) {
     <!DOCTYPE html>
     <html>
         <head>
@@ -9,7 +13,7 @@ templ mainLayout() {
             <title>Letsgo</title>
         </head>
         <body>
-            @navbar()
+            @partials.Navbar()
             { children... }
         </body>
         <script src="https://unpkg.com/htmx.org@1.9.9"></script>
