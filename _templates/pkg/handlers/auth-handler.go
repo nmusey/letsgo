@@ -2,15 +2,16 @@ package handlers
 
 import (
 	"errors"
+	"net/http"
 	"os"
 	"time"
-    "net/http"
 
 	"github.com/golang-jwt/jwt"
 
 	"$appRepo/pkg/core"
 	"$appRepo/pkg/models"
 	"$appRepo/pkg/services"
+	"$appRepo/views/pages"
 )
 
 type AuthHandler struct {
@@ -26,12 +27,12 @@ func NewAuthHandler(ctx *core.RouterContext) *AuthHandler {
     }
 }
 
-func (h AuthHandler) GetLogin(w http.ResponseWriter, r *http.Request) error {
-    return nil
+func (h AuthHandler) GetLogin(w http.ResponseWriter, r *http.Request) {
+    core.RenderTemplate(w, pages.Login())
 }
 
-func (h AuthHandler) GetRegister(w http.ResponseWriter, r *http.Request) error {
-    return nil
+func (h AuthHandler) GetRegister(w http.ResponseWriter, r *http.Request) {
+    core.RenderTemplate(w, pages.Register())
 }
 
 func (h AuthHandler) PostLogin(w http.ResponseWriter, r *http.Request) error {
