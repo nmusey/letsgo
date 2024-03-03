@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"time"
+    "net/http"
 
 	"github.com/golang-jwt/jwt"
 
@@ -26,11 +27,11 @@ func NewAuthHandler(ctx *core.RouterContext) *AuthHandler {
 }
 
 func (h AuthHandler) GetLogin(w http.ResponseWriter, r *http.Request) error {
-    return core.RenderTemplate(w, "pages/login", nil)
+    return nil
 }
 
 func (h AuthHandler) GetRegister(w http.ResponseWriter, r *http.Request) error {
-    return core.RenderTemplate(w, "pages/register", nil)
+    return nil
 }
 
 func (h AuthHandler) PostLogin(w http.ResponseWriter, r *http.Request) error {
@@ -49,7 +50,8 @@ func (h AuthHandler) PostLogin(w http.ResponseWriter, r *http.Request) error {
     }
 
     h.injectJwt(w, user)
-    return w.Redirect("/")
+    http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+    return nil
 }
 
 func (h AuthHandler) PostRegister(w http.ResponseWriter, r *http.Request) error {
@@ -74,7 +76,8 @@ func (h AuthHandler) PostRegister(w http.ResponseWriter, r *http.Request) error 
     }
 
     h.injectJwt(w, user)
-    return w.Redirect("/")
+    http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+    return nil
 }
 
 func (h AuthHandler) PostLogout(w http.ResponseWriter, r *http.Request) error {
@@ -85,7 +88,8 @@ func (h AuthHandler) PostLogout(w http.ResponseWriter, r *http.Request) error {
     }
 
     http.SetCookie(w, cookie)
-    return w.Redirect("/")
+    http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+    return nil
 }
 
 func (h AuthHandler) injectJwt(w http.ResponseWriter, user models.User) error {

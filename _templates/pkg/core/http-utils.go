@@ -3,6 +3,8 @@ package core
 import (
     "net/http"
     "encoding/json"
+
+    _ "github.com/a-h/templ"
 )
 
 func WriteJSON(w http.ResponseWriter, payload interface{}) error {
