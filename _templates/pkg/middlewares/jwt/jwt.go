@@ -1,95 +1,59 @@
 package jwt
 
-// TODO: Complete refactor is likely needed
-
 import (
 	"errors"
 	"net/http"
 	"time"
 
-	"$appRepo/pkg/core"
-	"$appRepo/pkg/services"
-
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 )
 
-type Config struct {
-    Filter       func(w http.ResponseWriter, r *http.Request) bool
-    Decode       func(w http.ResponseWriter, r *http.Request) (*jwt.MapClaims, error)
-    Unauthorized func(w http.ResponseWriter, r *http.Request) error
-    Secret       string
-    Expiry       int
-    UserService  services.UserService
-}
+var tokenName = "authorization"
+var UserIdCookieName = "user_id"
 
-func NewConfig(ctx *core.RouterContext, secret string) Config {
-    return Config{
-        Filter:       defaultFilter,
-        Unauthorized: defaultUnauthorized,
-        Decode:       makeDecoder(secret),
-        Secret:       secret,
-        Expiry:       int(time.Now().Add(time.Hour * 24).Unix()),
-        UserService:  services.NewUserService(ctx),
-    }
-}
-
-func defaultFilter(w http.ResponseWriter, r *http.Request) bool {
-    excluded := []string{"/login", "/register", "/logout"}
-    for _, path := range excluded {
-        if path == r.URL.Path {
-            return true
-        }
-    }
-
-    return false
-}
-
-func defaultUnauthorized(w http.ResponseWriter, r *http.Request) error {
-    return w.Redirect("/login")
-}
-
-func makeDecoder(secret string) func(w http.ResponseWriter, r *http.Request) (*jwt.MapClaims, error) {
-    return func(w http.ResponseWriter, r *http.Request) (*jwt.MapClaims, error) {
-        // TODO: Extract token from request cookie
-        var token string
-
-        claims := jwt.MapClaims{}
-        _, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (interface{}, error) {
-            return []byte(secret), nil
-        })
-
+func AuthticateMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        token := r.Cookie(tokenName)
+        claims, err := decodeToken(token)
         if err != nil {
-            return nil, err
+            unauthorized(w, r)
+            return
         }
 
-        return &claims, nil
-    }
+        userId, err := extractUserID(claims)
+        if err != nil {
+            unauthorized(w, r)
+            return
+        }
+
+        cookie := http.Cookie{
+            Name:     UserIdCookieName,
+            Value:    userId,
+        }
+
+        r.AddCookie(&cookie)
+
+        next.ServeHTTP(w, r)
+    })
 }
 
-func New(config Config) func (w http.ResponseWriter, r *http.Request) error {
-    return func(w http.ResponseWriter, r *http.Request) error {
-        if config.Filter(w, r) {
-            return http.Cookie
-        }
+func unauthorized(w http.ResponseWriter, r *http.Request) {
+    http.Redirect(w, r, "/login", http.StatusUnauthorized)
+}
 
-        claims, err := config.Decode(c)
-        if err != nil || claims.Valid() != nil {
-            return config.Unauthorized(c)
-        }
-
-        userID, err := extractUserID(claims)
-        if err != nil {
-            return config.Unauthorized(c)
-        }
-
-        user, err := config.UserService.GetUserByID(userID)
-        if user.ID == 0 || err != nil {
-            return config.Unauthorized(c)
-        }
-
-        c.Locals("user", user)
-        return c.Next()
+func decodeToken(token string) (jwt.MapClaims, error) {
+    claims := jwt.MapClaims{}
+    _, err := jwt.ParseWithClaims(token, &claims, paseJwt)
+    if err != nil {
+        return nil, err
     }
+
+    return claims, claims.Valid()
+}
+
+func parseJwt(token *jwt.Token) (interface{}, error) {
+    secret := []byte(os.Getenv("JWT_SECRET"))
+    return secret, nil
 }
 
 func extractUserID(claims *jwt.MapClaims) (int, error) {
