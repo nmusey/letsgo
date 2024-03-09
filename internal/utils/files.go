@@ -5,7 +5,7 @@ import (
 )
 
 func UpsertFolder(rootpath string) error {
-	const mode = 0755
+	const mode = 0777
 	if _, err := os.Stat(rootpath); os.IsNotExist(err) {
 		if err := os.Mkdir(rootpath, mode); err != nil {
 			return err

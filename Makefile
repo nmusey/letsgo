@@ -8,6 +8,7 @@ build-test:
 	# Build a test application to run unit tests against
 	make build
 	./letsgo make test test
+	(cd test && templ generate)
 
 run-test:
 	# Run a test server for manual testing
@@ -18,7 +19,7 @@ run-test:
 test:
 	# Run unit tests on the CLI and the test application
 	make clean
-	go test -v ./internal/... 
+	go test ./internal/... 
 	make build-test
 	(cd test && make test)
 	make clean
