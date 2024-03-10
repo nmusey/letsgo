@@ -107,7 +107,7 @@ func (h AuthHandler) injectJwt(w http.ResponseWriter, user models.User) error {
     }
 
     cookie := &http.Cookie{
-        Name: "jwt",
+        Name: "authorization",
         Value: tokenString,
         Expires: expiry,
     }

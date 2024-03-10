@@ -18,11 +18,14 @@ run-test:
 
 test:
 	# Run unit tests on the CLI and the test application
-	make clean
 	go test ./internal/... 
 	make build-test
 	(cd test && make test)
-	make clean
+
+test-debug:
+	go test -v ./internal/...
+	make build-test
+	(cd test && make test-debug)
 
 clean:
 	# Clean up the build artifacts
@@ -30,4 +33,4 @@ clean:
 	rm -rf ./test
 	rm -rf ./cmd/cli/_templates
 
-.PHONY: build build-test test clean
+.PHONY: build build-test test test-debug clean
