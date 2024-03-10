@@ -1,12 +1,13 @@
 package main
 
 import (
+    "fmt"
 	"net/http"
 	"os"
 
 	"$appRepo/pkg/core"
-	"$appRepo/pkg/handlers"
-	"$appRepo/pkg/middlewares/jwt"
+	// "$appRepo/pkg/handlers"
+	// "$appRepo/pkg/middlewares/jwt"
 )
 
 type HttpRouter struct {
@@ -17,6 +18,9 @@ type HttpRouter struct {
 func (r *HttpRouter) RegisterRoutes() {
     // TODO: Add routes here
     // TODO: Add jwt middleware here
+    r.mux.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
+        w.Write([]byte("hello world"))
+    })
 }
 
 func (r *HttpRouter) Serve() {

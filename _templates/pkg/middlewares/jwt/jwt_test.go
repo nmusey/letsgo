@@ -1,57 +1,68 @@
 package jwt
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
-	"$appRepo/pkg/core"
-    "$appRepo/pkg/services"
-
-	golangJwt "github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewConfig(t *testing.T) {
-    ctx := &core.RouterContext{}
-    config := NewConfig(ctx, "testsecret")
-    assert.NotNil(t, config.Filter)
-    assert.NotNil(t, config.Unauthorized)
-    assert.NotNil(t, config.Decode)
-    assert.Equal(t, "testsecret", config.Secret)
-    assert.NotNil(t, config.UserService)
-    assert.Equal(t, int(time.Now().Add(time.Hour * 24).Unix()), config.Expiry)
+type testCase struct {
+    name string
+    expiry time.Duration
+    expectedStatusCode int
 }
 
-func TestMakeDecoder(t *testing.T) {
-    decoder := makeDecoder("testsecret")
-    assert.NotNil(t, decoder)
+func TestAuthenticateMiddleware(t *testing.T) {
+    testCases := []testCase{
+        {
+            name: "Valid token expiry",
+            expiry: time.Hour * 2, 
+            expectedStatusCode: http.StatusOK,
+        },
+        {
+            name: "Past token expiry",
+            expiry: -time.Hour, 
+            expectedStatusCode: http.StatusUnauthorized,
+        },
+    }
+
+    os.Setenv("JWT_SECRET", "secret")
+
+    for _, tc := range testCases {
+        recorder := buildHandler(tc)
+        assert.Equal(t, tc.expectedStatusCode, recorder.Code)
+    }
+
 }
 
-func TestExtractUserID(t *testing.T) {
-    claims := golangJwt.MapClaims{
-        "uid": float64(123),
-    }
+func buildHandler(tc testCase) httptest.ResponseRecorder {
+    token := generateTestToken(tc)
 
-    userID, err := extractUserID(&claims)
-    assert.NoError(t, err)
-    assert.Equal(t, 123, userID)
+	req := httptest.NewRequest("GET", "/", nil)
+	req.AddCookie(&http.Cookie{Name: tokenName, Value: string(token)})
 
-    claims = golangJwt.MapClaims{
-        "uid": "not-a-number",
-    }
+	recorder := httptest.NewRecorder()
+	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
 
-    _, err = extractUserID(&claims)
-    assert.Error(t, err)
+	middleware := AuthenticateMiddleware(testHandler)
+	middleware.ServeHTTP(recorder, req)
+
+    return *recorder
 }
 
-func TestNew(t *testing.T) {
-    config := Config{
-        Filter:       defaultFilter,
-        Unauthorized: defaultUnauthorized,
-        Decode:       makeDecoder("testsecret"),
-        Secret:       "testsecret",
-        UserService:  services.UserService{},
+func generateTestToken(tc testCase) string {
+	claims := jwt.MapClaims{
+        "uid": 1234,
+        "exp": time.Now().Add(tc.expiry).Unix(),
     }
 
-    _ = New(config)
+    token, _ := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte("secret"))
+    return token
 }

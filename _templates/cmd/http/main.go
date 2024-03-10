@@ -28,7 +28,7 @@ func main() {
         DB: db,
     }
 
-    router := FiberRouter{
+    router := HttpRouter{
         ctx: &ctx,
     }
 

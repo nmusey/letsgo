@@ -2,8 +2,9 @@ package jwt
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
-	"time"
+	"os"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -11,16 +12,15 @@ import (
 var tokenName = "authorization"
 var UserIdCookieName = "user_id"
 
-func AuthticateMiddleware(next http.Handler) http.Handler {
+func AuthenticateMiddleware(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        token := r.Cookie(tokenName)
-        claims, err := decodeToken(token)
+        tokenCookie, err := r.Cookie(tokenName)
         if err != nil {
             unauthorized(w, r)
             return
         }
 
-        userId, err := extractUserID(claims)
+        userId, err := decodeToken(tokenCookie.Value)
         if err != nil {
             unauthorized(w, r)
             return
@@ -32,7 +32,6 @@ func AuthticateMiddleware(next http.Handler) http.Handler {
         }
 
         r.AddCookie(&cookie)
-
         next.ServeHTTP(w, r)
     })
 }
@@ -41,14 +40,19 @@ func unauthorized(w http.ResponseWriter, r *http.Request) {
     http.Redirect(w, r, "/login", http.StatusUnauthorized)
 }
 
-func decodeToken(token string) (jwt.MapClaims, error) {
+func decodeToken(token string) (string, error) {
     claims := jwt.MapClaims{}
-    _, err := jwt.ParseWithClaims(token, &claims, paseJwt)
+    _, err := jwt.ParseWithClaims(token, &claims, parseJwt)
     if err != nil {
-        return nil, err
+        return "", err
     }
 
-    return claims, claims.Valid()
+    userId, err := extractUserID(claims)
+    if err != nil {
+        return "", err
+    }
+
+    return fmt.Sprintf("%d", userId), nil
 }
 
 func parseJwt(token *jwt.Token) (interface{}, error) {
@@ -56,8 +60,8 @@ func parseJwt(token *jwt.Token) (interface{}, error) {
     return secret, nil
 }
 
-func extractUserID(claims *jwt.MapClaims) (int, error) {
-    userIDValue, ok := (*claims)["uid"]
+func extractUserID(claims jwt.MapClaims) (int, error) {
+    userIDValue, ok := (claims)["uid"]
     if !ok {
         return 0, errors.New("user ID not found in claims")
     }
