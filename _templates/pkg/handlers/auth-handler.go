@@ -27,12 +27,14 @@ func NewAuthHandler(ctx *core.RouterContext) *AuthHandler {
     }
 }
 
-func (h AuthHandler) GetLogin(w http.ResponseWriter, r *http.Request) {
+func (h AuthHandler) GetLogin(w http.ResponseWriter, r *http.Request) error {
     core.RenderTemplate(w, pages.Login())
+    return nil
 }
 
-func (h AuthHandler) GetRegister(w http.ResponseWriter, r *http.Request) {
+func (h AuthHandler) GetRegister(w http.ResponseWriter, r *http.Request) error {
     core.RenderTemplate(w, pages.Register())
+    return nil
 }
 
 func (h AuthHandler) PostLogin(w http.ResponseWriter, r *http.Request) error {
@@ -83,7 +85,7 @@ func (h AuthHandler) PostRegister(w http.ResponseWriter, r *http.Request) error 
 
 func (h AuthHandler) PostLogout(w http.ResponseWriter, r *http.Request) error {
     cookie := &http.Cookie{
-        Name: "jwt",
+        Name: "authorization",
         Value: "",
         MaxAge: -1,
     }
