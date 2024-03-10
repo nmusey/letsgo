@@ -21,16 +21,15 @@ func main() {
 
     fmt.Println("Connecting to database...")
     core.BlockingBackoff(db.Connect, 5, 3 * time.Second)
+
+    // This should be moved somewhere more controllable
     fmt.Println("Running migrations...")
     core.BlockingBackoff(db.Migrate, 5, 3 * time.Second)
 
-    ctx := core.RouterContext{
+    ctx := &core.RouterContext{
         DB: db,
     }
 
-    router := HttpRouter{
-        ctx: &ctx,
-    }
-
-    router.Serve()
+    routes := BuildRoutes(ctx)
+    core.NewHttpRouter(ctx).MapRoutes(routes).Serve()
 }
