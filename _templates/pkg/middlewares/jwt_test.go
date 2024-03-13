@@ -1,4 +1,4 @@
-package middlewares
+package jwt
 
 import (
 	"net/http"
@@ -17,7 +17,7 @@ type testCase struct {
     expectedStatusCode int
 }
 
-func TestAuthenticateMiddleware(t *testing.T) {
+func TestAuthenticatedMiddleware(t *testing.T) {
     testCases := []testCase{
         {
             name: "Valid token expiry",
@@ -51,7 +51,7 @@ func buildHandler(tc testCase) httptest.ResponseRecorder {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	middleware := AuthenticateMiddleware(testHandler)
+	middleware := NewAuthenticatedMiddleware(testHandler)
 	middleware.ServeHTTP(recorder, req)
 
     return *recorder

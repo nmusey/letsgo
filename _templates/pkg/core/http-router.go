@@ -1,4 +1,4 @@
-package middlewares
+package core
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"os"
 
 	"github.com/a-h/templ"
-	"github.com/docker/docker/api/server/middleware"
 
 	"$appRepo/views/layouts"
 )
@@ -47,10 +46,6 @@ func (r *HttpRouter) MapRoutes(routes map[string]HttpHandler) *HttpRouter {
     return r
 }
 
-func (r *HttpRouter) ApplyMiddleware(middleware func(ResponseWriter, *Request)) {
-    r.Mux = middleware(r.Mux)
-}
-
 func WriteJSON(w http.ResponseWriter, payload interface{}) error {
     w.Header().Set("Content-Type", "application/json")
     return json.NewEncoder(w).Encode(payload)
@@ -61,7 +56,6 @@ func ReadJSON(r *http.Request, payload interface{}) error {
 }
 
 func RenderTemplate(w http.ResponseWriter, components templ.Component) {
-    component := 
     layouts.MainLayout(components).Render(context.Background(), w)
 }
 

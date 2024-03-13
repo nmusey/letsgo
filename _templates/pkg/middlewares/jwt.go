@@ -12,28 +12,34 @@ import (
 var tokenName = "authorization"
 var UserIdCookieName = "user_id"
 
-func AuthenticateMiddleware(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        tokenCookie, err := r.Cookie(tokenName)
-        if err != nil {
-            unauthorized(w, r)
-            return
-        }
+type AuthenticateMiddleware struct {
+    handler http.Handler
+}
 
-        userId, err := decodeToken(tokenCookie.Value)
-        if err != nil {
-            unauthorized(w, r)
-            return
-        }
+func NewAuthenticatedMiddleware(handler http.Handler) *AuthenticateMiddleware {
+    return &AuthenticateMiddleware{handler: handler}
+}
 
-        cookie := http.Cookie{
-            Name:     UserIdCookieName,
-            Value:    userId,
-        }
+func (m AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+    tokenCookie, err := r.Cookie(tokenName)
+    if err != nil {
+        unauthorized(w, r)
+        return
+    }
 
-        r.AddCookie(&cookie)
-        next.ServeHTTP(w, r)
-    })
+    userId, err := decodeToken(tokenCookie.Value)
+    if err != nil {
+        unauthorized(w, r)
+        return
+    }
+
+    cookie := http.Cookie{
+        Name:     UserIdCookieName,
+        Value:    userId,
+    }
+
+    r.AddCookie(&cookie)
+    m.handler.ServeHTTP(w, r)
 }
 
 func unauthorized(w http.ResponseWriter, r *http.Request) {
