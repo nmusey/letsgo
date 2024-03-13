@@ -7,7 +7,8 @@ build:
 	go build -o $appName cmd/http/main.go
 
 test:
-	go test ./...
+	docker build -t $appName:tester --target tester .
+	docker run $appName:tester
 
 test-debug:
 	go test -v ./...
