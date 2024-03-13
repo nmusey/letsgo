@@ -59,9 +59,8 @@ func (h AuthHandler) PostLogin(w http.ResponseWriter, r *http.Request) error {
 
 func (h AuthHandler) PostRegister(w http.ResponseWriter, r *http.Request) error {
     r.ParseForm()
-    user := models.User{
+    user := &models.User{
         Email: r.FormValue("email"),
-        Username: r.FormValue("username"),
     }
 
     if err := h.UserService.SaveUser(user); err != nil {
@@ -95,7 +94,7 @@ func (h AuthHandler) PostLogout(w http.ResponseWriter, r *http.Request) error {
     return nil
 }
 
-func (h AuthHandler) injectJwt(w http.ResponseWriter, user models.User) error {
+func (h AuthHandler) injectJwt(w http.ResponseWriter, user *models.User) error {
     expiry := time.Now().Add(time.Hour * 24)
 
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{

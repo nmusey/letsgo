@@ -14,7 +14,7 @@ templ MainLayout(children templ.Component) {
         </head>
         <body>
             @partials.Navbar()
-            { children... }
+            @children
         </body>
         <script src="https://unpkg.com/htmx.org@1.9.9"></script>
     </html>
