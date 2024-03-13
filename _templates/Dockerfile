@@ -11,11 +11,10 @@ RUN go mod verify
 RUN go mod tidy
 
 COPY . .
+RUN templ generate
 
 FROM base as runner
-RUN templ generate
 RUN go build -o main cmd/http/*.go
-
 CMD ["air", "-c", ".air.toml"]
 
 FROM base as tester
