@@ -6,17 +6,22 @@ import (
     "$appRepo/pkg/models"
 )
 
-type PasswordService struct {
+type PasswordService interface {
+    SavePassword(string, int) error
+    CheckPassword(string, int) (bool, error)
+}
+
+type SQLPasswordService struct {
     ctx *core.RouterContext
 }
 
-func NewPasswordService(ctx *core.RouterContext) *PasswordService {
-    return &PasswordService{
+func NewPasswordService(ctx *core.RouterContext) *SQLPasswordService {
+    return &SQLPasswordService{
         ctx: ctx,
     }
 }
 
-func (s PasswordService) SavePassword(password string, userId int) error {
+func (s SQLPasswordService) SavePassword(password string, userId int) error {
     hashed, err := s.hashPassword(password)
     if err != nil {
         return err
@@ -32,7 +37,7 @@ func (s PasswordService) SavePassword(password string, userId int) error {
     return err
 }
 
-func (s PasswordService) CheckPassword(password string, userId int) (bool, error) {
+func (s SQLPasswordService) CheckPassword(password string, userId int) (bool, error) {
     passwordObj := models.Password{}
     if err := s.ctx.DB.Get(&passwordObj, "user_id = $1", userId); err != nil {
         return false, err
@@ -41,12 +46,12 @@ func (s PasswordService) CheckPassword(password string, userId int) (bool, error
     return s.checkPasswordHash(password, passwordObj.Password), nil
 }
 
-func (s PasswordService) hashPassword(password string) (string, error) {
+func (s SQLPasswordService) hashPassword(password string) (string, error) {
     bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
     return string(bytes), err
 }
 
-func (s PasswordService) checkPasswordHash(password, hash string) bool {
+func (s SQLPasswordService) checkPasswordHash(password, hash string) bool {
     err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
     return err == nil
 }

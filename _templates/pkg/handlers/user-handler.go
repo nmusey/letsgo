@@ -10,18 +10,18 @@ import (
 
 type UserHandler struct {
     ctx     *core.RouterContext
-    Service services.UserService
+    UserService services.UserService
 }
 
 func NewUserHandler(ctx *core.RouterContext) *UserHandler {
     return &UserHandler{
         ctx: ctx,
-        Service: services.NewUserService(ctx),
+        UserService: services.NewUserService(ctx),
     }
 }
 
 func (h UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) error {
-    users, err := h.Service.GetUsers()
+    users, err := h.UserService.GetUsers()
     if err != nil {
         return err
     }
@@ -34,7 +34,7 @@ func (h UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) error {
     var id int
     id, err := strconv.Atoi(r.PathValue("id"))
 
-    user, err := h.Service.GetUserByID(id)
+    user, err := h.UserService.GetUserByID(id)
     if err != nil {
         return err
     }

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"net/http"
 	"os"
 	"time"
@@ -44,12 +43,14 @@ func (h AuthHandler) PostLogin(w http.ResponseWriter, r *http.Request) error {
 
     user, err := h.UserService.GetUserByEmail(email)
     if err != nil {
-        return err
+        w.WriteHeader(http.StatusUnauthorized)
+        return nil
     }
 
     match, err := h.PasswordService.CheckPassword(password, user.ID); 
     if !match || err != nil {
-        return errors.New("Invalid email or password")
+        w.WriteHeader(http.StatusUnauthorized)
+        return nil
     }
 
     h.injectJwt(w, user)
@@ -64,17 +65,20 @@ func (h AuthHandler) PostRegister(w http.ResponseWriter, r *http.Request) error 
     }
 
     if err := h.UserService.SaveUser(user); err != nil {
-        return err
+        w.WriteHeader(http.StatusBadRequest)
+        return nil
     }
 
     user, err := h.UserService.GetUserByEmail(user.Email)
     if err != nil {
-        return err
+        w.WriteHeader(http.StatusBadRequest)
+        return nil
     }
     
     password := r.FormValue("password")
     if err := h.PasswordService.SavePassword(password, user.ID); err != nil {
-        return err
+        w.WriteHeader(http.StatusBadRequest)
+        return nil
     }
 
     h.injectJwt(w, user)
@@ -84,7 +88,7 @@ func (h AuthHandler) PostRegister(w http.ResponseWriter, r *http.Request) error 
 
 func (h AuthHandler) PostLogout(w http.ResponseWriter, r *http.Request) error {
     cookie := &http.Cookie{
-        Name: "authorization",
+        Name: "Authorization",
         Value: "",
         MaxAge: -1,
     }
@@ -108,7 +112,7 @@ func (h AuthHandler) injectJwt(w http.ResponseWriter, user *models.User) error {
     }
 
     cookie := &http.Cookie{
-        Name: "authorization",
+        Name: "Authorization",
         Value: tokenString,
         Expires: expiry,
     }
