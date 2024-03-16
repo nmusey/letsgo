@@ -4,7 +4,6 @@ CREATE TABLE users (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP,
 
-    username TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE
 );
 

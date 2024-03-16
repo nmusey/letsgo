@@ -1,8 +1,6 @@
 package services
 
 import (
-    "fmt"
-
     "golang.org/x/crypto/bcrypt"
 	"$appRepo/pkg/core"
     "$appRepo/pkg/models"
@@ -29,7 +27,7 @@ func (s PasswordService) SavePassword(password string, userId int) error {
         UserID: userId,
     }
 
-    query := fmt.Sprintf("INSERT INTO %s (%s) VALUES $1", passwordObj.Table(), passwordObj.AllColumns())
+    query := "INSERT INTO passwords(user_id, password) VALUES :password, :userId"
     _, err = s.ctx.DB.NamedExec(query, passwordObj)
     return err
 }

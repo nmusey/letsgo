@@ -1,9 +1,11 @@
 package handlers
 
 import (
-    "github.com/gofiber/fiber/v2"
-    "$appRepo/pkg/core"
-    "$appRepo/pkg/services"
+	"net/http"
+	"strconv"
+
+	"$appRepo/pkg/core"
+	"$appRepo/pkg/services"
 )
 
 type UserHandler struct {
@@ -18,25 +20,25 @@ func NewUserHandler(ctx *core.RouterContext) *UserHandler {
     }
 }
 
-func (h UserHandler) GetUsers(c *fiber.Ctx) error {
+func (h UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) error {
     users, err := h.Service.GetUsers()
     if err != nil {
         return err
     }
 
-    return c.JSON(users)
+    core.WriteJSON(w, users)
+    return nil
 }
 
-func (h UserHandler) GetUserByID(c *fiber.Ctx) error {
-    id, err := c.ParamsInt("id")
-    if err != nil {
-        return err
-    }
+func (h UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) error {
+    var id int
+    id, err := strconv.Atoi(r.PathValue("id"))
 
     user, err := h.Service.GetUserByID(id)
     if err != nil {
         return err
     }
 
-    return c.JSON(user)
+    core.WriteJSON(w, user)
+    return nil
 }

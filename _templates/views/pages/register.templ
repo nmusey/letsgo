@@ -1,0 +1,16 @@
+package pages
+
+templ Register() {
+    <h1>REGISTER</h1>
+    <form hx-post="/register" hx-boost="true">
+        <label for="email">Email</label>
+        <input type="email" name="email" id="username" />
+
+        <label for="password">Password</label>
+        <input type="password" name="password" id="password" />
+
+        <input type="submit" value="Register" />
+    </form>
+
+    <a href="/login">Login</a>
+}

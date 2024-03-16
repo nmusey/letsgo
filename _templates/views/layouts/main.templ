@@ -1,0 +1,21 @@
+package layouts
+
+import (
+    "$appRepo/views/layouts/partials"
+)
+
+templ MainLayout(children templ.Component) {
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width" />
+            <title>Letsgo</title>
+        </head>
+        <body>
+            @partials.Navbar()
+            @children
+        </body>
+        <script src="https://unpkg.com/htmx.org@1.9.9"></script>
+    </html>
+}
