@@ -12,6 +12,10 @@ import (
 	"$appRepo/views/layouts"
 )
 
+type RouterContext struct {
+    DB  Database
+}
+
 type HttpHandler func(http.ResponseWriter, *http.Request)error
 
 type HttpRouter struct {

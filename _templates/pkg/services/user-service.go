@@ -5,23 +5,30 @@ import (
 	"$appRepo/pkg/models"
 )
 
-type UserService struct {
+type UserService interface {
+    SaveUser(*models.User) error
+    GetUsers() ([]models.User, error)
+    GetUserByID(int) (*models.User, error)
+    GetUserByEmail(string) (*models.User, error)
+}
+
+type SQLUserService struct {
     ctx *core.RouterContext
 }
 
-func NewUserService(ctx *core.RouterContext) UserService {
-    return UserService{
+func NewUserService(ctx *core.RouterContext) SQLUserService {
+    return SQLUserService{
         ctx: ctx,
     }
 }
 
-func (u UserService) SaveUser(user *models.User) error {
+func (u SQLUserService) SaveUser(user *models.User) error {
     query := "INSERT INTO users(email) VALUES (:email)"
     _, err := u.ctx.DB.NamedExec(query, user)
     return err
 }
 
-func (u UserService) GetUsers() ([]models.User, error) {
+func (u SQLUserService) GetUsers() ([]models.User, error) {
     var users []models.User
     query := "select * from users";
 
@@ -29,7 +36,7 @@ func (u UserService) GetUsers() ([]models.User, error) {
     return users, err
 }
 
-func (u UserService) GetUserByID(id int) (*models.User, error) {
+func (u SQLUserService) GetUserByID(id int) (*models.User, error) {
     user := &models.User{}
     query := "SELECT * FROM users WHERE id = $1"
 
@@ -37,7 +44,7 @@ func (u UserService) GetUserByID(id int) (*models.User, error) {
     return user, err
 }
 
-func (u UserService) GetUserByEmail(email string) (*models.User, error) {
+func (u SQLUserService) GetUserByEmail(email string) (*models.User, error) {
     user := &models.User{}
     query := "SELECT * FROM users WHERE email = $1"
 
