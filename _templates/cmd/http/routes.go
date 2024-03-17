@@ -2,12 +2,12 @@ package main
 
 import (
 	"$appRepo/pkg/core"
-	"$appRepo/pkg/handlers"
+	"$appRepo/pkg/auth"
 )
 
 func BuildRoutes(ctx *core.RouterContext) map[string]core.HttpHandler {
     // TODO: Add jwt middleware here
-    authHandler := handlers.NewAuthHandler(ctx)
+    authHandler := auth.NewAuthHandler(ctx)
 
     return map[string]core.HttpHandler{
         "GET /login": authHandler.GetLogin,

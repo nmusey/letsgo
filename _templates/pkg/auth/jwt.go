@@ -1,4 +1,4 @@
-package jwt
+package auth
 
 import (
 	"errors"
@@ -67,15 +67,15 @@ func parseJwt(token *jwt.Token) (interface{}, error) {
 }
 
 func extractUserID(claims jwt.MapClaims) (int, error) {
-    userIDValue, ok := (claims)["uid"]
+    userIdValue, ok := (claims)["uid"]
     if !ok {
         return 0, errors.New("user ID not found in claims")
     }
 
-    userID, ok := userIDValue.(float64) // JWT decodes numbers as float64
+    userId, ok := userIdValue.(float64) // JWT decodes numbers as float64
     if !ok {
         return 0, errors.New("user ID is not a valid number")
     }
 
-    return int(userID), nil
+    return int(userId), nil
 }

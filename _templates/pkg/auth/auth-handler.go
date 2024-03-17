@@ -1,4 +1,4 @@
-package handlers
+package auth
 
 import (
 	"net/http"
@@ -8,21 +8,21 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 
 	"$appRepo/pkg/core"
-	"$appRepo/pkg/models"
-	"$appRepo/pkg/services"
+	"$appRepo/pkg/users"
 	"$appRepo/views/pages"
 )
 
 type AuthHandler struct {
     ctx             *core.RouterContext
-    UserService     services.UserService
-    PasswordService services.PasswordService
+    UserService     users.UserService
+    PasswordService PasswordService
 }
 
 func NewAuthHandler(ctx *core.RouterContext) *AuthHandler {
     return &AuthHandler{
         ctx: ctx,
-        UserService: services.NewUserService(ctx),
+        UserService: users.NewUserService(ctx),
+        PasswordService: NewPasswordService(ctx),
     }
 }
 
@@ -47,7 +47,7 @@ func (h AuthHandler) PostLogin(w http.ResponseWriter, r *http.Request) error {
         return nil
     }
 
-    match, err := h.PasswordService.CheckPassword(password, user.ID); 
+    match, err := h.PasswordService.CheckPassword(password, user.Id); 
     if !match || err != nil {
         w.WriteHeader(http.StatusUnauthorized)
         return nil
@@ -60,7 +60,7 @@ func (h AuthHandler) PostLogin(w http.ResponseWriter, r *http.Request) error {
 
 func (h AuthHandler) PostRegister(w http.ResponseWriter, r *http.Request) error {
     r.ParseForm()
-    user := &models.User{
+    user := &users.User{
         Email: r.FormValue("email"),
     }
 
@@ -76,7 +76,7 @@ func (h AuthHandler) PostRegister(w http.ResponseWriter, r *http.Request) error 
     }
     
     password := r.FormValue("password")
-    if err := h.PasswordService.SavePassword(password, user.ID); err != nil {
+    if err := h.PasswordService.SavePassword(password, user.Id); err != nil {
         w.WriteHeader(http.StatusBadRequest)
         return nil
     }
@@ -98,11 +98,11 @@ func (h AuthHandler) PostLogout(w http.ResponseWriter, r *http.Request) error {
     return nil
 }
 
-func (h AuthHandler) injectJwt(w http.ResponseWriter, user *models.User) error {
+func (h AuthHandler) injectJwt(w http.ResponseWriter, user *users.User) error {
     expiry := time.Now().Add(time.Hour * 24)
 
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-        "uid": user.ID,
+        "uid": user.Id,
         "exp": expiry.Unix(),
     })
 

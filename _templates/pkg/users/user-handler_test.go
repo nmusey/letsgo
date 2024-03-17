@@ -1,4 +1,4 @@
-package handlers
+package users
 
 import (
 	"net/http"
@@ -8,13 +8,12 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"$appRepo/pkg/core"
-	"$appRepo/pkg/services"
 )
 
 func TestUserHandler_GetUsers(t *testing.T) {
 	handler := UserHandler{
         ctx: &core.RouterContext{},
-        UserService: services.MockUserService{},
+        UserService: MockUserService{},
     }
 
 	w := httptest.NewRecorder()
