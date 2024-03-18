@@ -14,10 +14,6 @@ var UserIdCookieName = "user_id"
 
 type JwtMiddleware struct {}
 
-func NewAuthenticatedMiddleware() *JwtMiddleware {
-    return &JwtMiddleware{}
-}
-
 func (m JwtMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     tokenCookie, err := r.Cookie(tokenName)
     if err != nil {

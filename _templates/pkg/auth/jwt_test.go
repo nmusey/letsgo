@@ -47,7 +47,7 @@ func buildHandler(tc testCase) httptest.ResponseRecorder {
 	req.AddCookie(&http.Cookie{Name: tokenName, Value: string(token)})
 
 	recorder := httptest.NewRecorder()
-    middleware := NewAuthenticatedMiddleware()
+    middleware := JwtMiddleware{}
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         middleware.ServeHTTP(w, r)
 		w.WriteHeader(http.StatusOK)
