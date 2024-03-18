@@ -1,8 +1,8 @@
 package main
 
 import (
+    "$appRepo/pkg/core"
 	"$appRepo/pkg/auth"
-	"$appRepo/pkg/core"
 	"$appRepo/pkg/users"
 )
 
@@ -18,6 +18,6 @@ func BuildRoutes(ctx *core.RouterContext) []core.Route {
         core.BuildRoute("POST /register", authHandler.PostRegister),
         core.BuildRoute("POST /logout", authHandler.PostLogout),
 
-        core.BuildRoute("GET /users", userHandler.GetUsers, &auth.JwtMiddleware{}),
+        core.BuildRoute("GET /users", userHandler.GetUsers, &auth.JwtMiddleware{}, &core.JsonMiddleware{}),
     }
 }
