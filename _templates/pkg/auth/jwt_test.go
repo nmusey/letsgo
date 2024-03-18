@@ -1,4 +1,4 @@
-package jwt
+package auth
 
 import (
 	"net/http"
@@ -47,13 +47,13 @@ func buildHandler(tc testCase) httptest.ResponseRecorder {
 	req.AddCookie(&http.Cookie{Name: tokenName, Value: string(token)})
 
 	recorder := httptest.NewRecorder()
+    middleware := JwtMiddleware{}
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        middleware.ServeHTTP(w, r)
 		w.WriteHeader(http.StatusOK)
 	})
 
-	middleware := NewAuthenticatedMiddleware(testHandler)
-	middleware.ServeHTTP(recorder, req)
-
+	testHandler.ServeHTTP(recorder, req)
     return *recorder
 }
 

@@ -1,4 +1,4 @@
-package handlers
+package auth
 
 import (
 	"net/http"
@@ -8,35 +8,33 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 
 	"$appRepo/pkg/core"
-	"$appRepo/pkg/models"
-	"$appRepo/pkg/services"
+	"$appRepo/pkg/users"
 	"$appRepo/views/pages"
 )
 
 type AuthHandler struct {
     ctx             *core.RouterContext
-    UserService     services.UserService
-    PasswordService services.PasswordService
+    UserService     users.UserService
+    PasswordService PasswordService
 }
 
 func NewAuthHandler(ctx *core.RouterContext) *AuthHandler {
     return &AuthHandler{
         ctx: ctx,
-        UserService: services.NewUserService(ctx),
+        UserService: users.NewUserService(ctx),
+        PasswordService: NewPasswordService(ctx),
     }
 }
 
-func (h AuthHandler) GetLogin(w http.ResponseWriter, r *http.Request) error {
+func (h AuthHandler) GetLogin(w http.ResponseWriter, r *http.Request) {
     core.RenderTemplate(w, pages.Login())
-    return nil
 }
 
-func (h AuthHandler) GetRegister(w http.ResponseWriter, r *http.Request) error {
+func (h AuthHandler) GetRegister(w http.ResponseWriter, r *http.Request) {
     core.RenderTemplate(w, pages.Register())
-    return nil
 }
 
-func (h AuthHandler) PostLogin(w http.ResponseWriter, r *http.Request) error {
+func (h AuthHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
     r.ParseForm()
     email := r.FormValue("email")
     password := r.FormValue("password")
@@ -44,49 +42,42 @@ func (h AuthHandler) PostLogin(w http.ResponseWriter, r *http.Request) error {
     user, err := h.UserService.GetUserByEmail(email)
     if err != nil {
         w.WriteHeader(http.StatusUnauthorized)
-        return nil
     }
 
-    match, err := h.PasswordService.CheckPassword(password, user.ID); 
+    match, err := h.PasswordService.CheckPassword(password, user.Id); 
     if !match || err != nil {
         w.WriteHeader(http.StatusUnauthorized)
-        return nil
     }
 
     h.injectJwt(w, user)
     http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-    return nil
 }
 
-func (h AuthHandler) PostRegister(w http.ResponseWriter, r *http.Request) error {
+func (h AuthHandler) PostRegister(w http.ResponseWriter, r *http.Request) {
     r.ParseForm()
-    user := &models.User{
+    user := &users.User{
         Email: r.FormValue("email"),
     }
 
     if err := h.UserService.SaveUser(user); err != nil {
         w.WriteHeader(http.StatusBadRequest)
-        return nil
     }
 
     user, err := h.UserService.GetUserByEmail(user.Email)
     if err != nil {
         w.WriteHeader(http.StatusBadRequest)
-        return nil
     }
     
     password := r.FormValue("password")
-    if err := h.PasswordService.SavePassword(password, user.ID); err != nil {
+    if err := h.PasswordService.SavePassword(password, user.Id); err != nil {
         w.WriteHeader(http.StatusBadRequest)
-        return nil
     }
 
     h.injectJwt(w, user)
     http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-    return nil
 }
 
-func (h AuthHandler) PostLogout(w http.ResponseWriter, r *http.Request) error {
+func (h AuthHandler) PostLogout(w http.ResponseWriter, r *http.Request) {
     cookie := &http.Cookie{
         Name: "Authorization",
         Value: "",
@@ -95,20 +86,18 @@ func (h AuthHandler) PostLogout(w http.ResponseWriter, r *http.Request) error {
 
     http.SetCookie(w, cookie)
     http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-    return nil
 }
 
-func (h AuthHandler) injectJwt(w http.ResponseWriter, user *models.User) error {
+func (h AuthHandler) injectJwt(w http.ResponseWriter, user *users.User) {
     expiry := time.Now().Add(time.Hour * 24)
-
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-        "uid": user.ID,
+        "uid": user.Id,
         "exp": expiry.Unix(),
     })
 
     tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
     if err != nil {
-        return err
+        w.WriteHeader(http.StatusUnauthorized)
     }
 
     cookie := &http.Cookie{
@@ -118,5 +107,4 @@ func (h AuthHandler) injectJwt(w http.ResponseWriter, user *models.User) error {
     }
 
     http.SetCookie(w, cookie)
-    return nil
 }

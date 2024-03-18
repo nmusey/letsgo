@@ -1,4 +1,4 @@
-package jwt
+package auth
 
 import (
 	"errors"
@@ -12,15 +12,9 @@ import (
 var tokenName = "authorization"
 var UserIdCookieName = "user_id"
 
-type AuthenticateMiddleware struct {
-    handler http.Handler
-}
+type JwtMiddleware struct {}
 
-func NewAuthenticatedMiddleware(handler http.Handler) *AuthenticateMiddleware {
-    return &AuthenticateMiddleware{handler: handler}
-}
-
-func (m AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (m JwtMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     tokenCookie, err := r.Cookie(tokenName)
     if err != nil {
         unauthorized(w, r)
@@ -39,7 +33,6 @@ func (m AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request
     }
 
     r.AddCookie(&cookie)
-    m.handler.ServeHTTP(w, r)
 }
 
 func unauthorized(w http.ResponseWriter, r *http.Request) {
@@ -67,15 +60,15 @@ func parseJwt(token *jwt.Token) (interface{}, error) {
 }
 
 func extractUserID(claims jwt.MapClaims) (int, error) {
-    userIDValue, ok := (claims)["uid"]
+    userIdValue, ok := (claims)["uid"]
     if !ok {
         return 0, errors.New("user ID not found in claims")
     }
 
-    userID, ok := userIDValue.(float64) // JWT decodes numbers as float64
+    userId, ok := userIdValue.(float64) // JWT decodes numbers as float64
     if !ok {
         return 0, errors.New("user ID is not a valid number")
     }
 
-    return int(userID), nil
+    return int(userId), nil
 }

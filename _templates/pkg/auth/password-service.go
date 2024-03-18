@@ -1,9 +1,8 @@
-package services
+package auth
 
 import (
     "golang.org/x/crypto/bcrypt"
 	"$appRepo/pkg/core"
-    "$appRepo/pkg/models"
 )
 
 type PasswordService interface {
@@ -27,9 +26,9 @@ func (s SQLPasswordService) SavePassword(password string, userId int) error {
         return err
     }
 
-    passwordObj := models.Password{
+    passwordObj := Password{
         Password: hashed,
-        UserID: userId,
+        UserId: userId,
     }
 
     query := "INSERT INTO passwords(user_id, password) VALUES :password, :userId"
@@ -38,7 +37,7 @@ func (s SQLPasswordService) SavePassword(password string, userId int) error {
 }
 
 func (s SQLPasswordService) CheckPassword(password string, userId int) (bool, error) {
-    passwordObj := models.Password{}
+    passwordObj := Password{}
     if err := s.ctx.DB.Get(&passwordObj, "user_id = $1", userId); err != nil {
         return false, err
     }
