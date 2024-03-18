@@ -1,20 +1,23 @@
 package main
 
 import (
-	"$appRepo/pkg/core"
 	"$appRepo/pkg/auth"
+	"$appRepo/pkg/core"
+	"$appRepo/pkg/users"
 )
 
-func BuildRoutes(ctx *core.RouterContext) map[string]core.HttpHandler {
-    // TODO: Add jwt middleware here
+func BuildRoutes(ctx *core.RouterContext) []core.Route {
     authHandler := auth.NewAuthHandler(ctx)
+    userHandler := users.NewUserHandler(ctx)
 
-    return map[string]core.HttpHandler{
-        "GET /login": authHandler.GetLogin,
-        "GET /register": authHandler.GetRegister,
+    return []core.Route{
+        core.BuildRoute("GET /login", authHandler.GetLogin),
+        core.BuildRoute("GET /register", authHandler.GetRegister),
 
-        "POST /login": authHandler.PostLogin,
-        "POST /register": authHandler.PostRegister,
-        "POST /logout": authHandler.PostLogout,
+        core.BuildRoute("POST /login", authHandler.PostLogin),
+        core.BuildRoute("POST /register", authHandler.PostRegister),
+        core.BuildRoute("POST /logout", authHandler.PostLogout),
+
+        core.BuildRoute("GET /users", userHandler.GetUsers, &auth.JwtMiddleware{}),
     }
 }

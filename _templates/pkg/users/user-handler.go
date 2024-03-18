@@ -19,25 +19,30 @@ func NewUserHandler(ctx *core.RouterContext) *UserHandler {
     }
 }
 
-func (h UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) error {
+func (h UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
     users, err := h.UserService.GetUsers()
     if err != nil {
-        return err
+        w.WriteHeader(http.StatusInternalServerError)
+        return
     }
 
     core.WriteJSON(w, users)
-    return nil
 }
 
-func (h UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) error {
+func (h UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
     var id int
     id, err := strconv.Atoi(r.PathValue("id"))
 
     user, err := h.UserService.GetUserById(id)
     if err != nil {
-        return err
+        w.WriteHeader(http.StatusInternalServerError)
+        return
+    }
+
+    if user == nil {
+        w.WriteHeader(http.StatusNotFound)
+        return
     }
 
     core.WriteJSON(w, user)
-    return nil
 }

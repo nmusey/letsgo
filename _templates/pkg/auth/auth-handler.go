@@ -26,17 +26,15 @@ func NewAuthHandler(ctx *core.RouterContext) *AuthHandler {
     }
 }
 
-func (h AuthHandler) GetLogin(w http.ResponseWriter, r *http.Request) error {
+func (h AuthHandler) GetLogin(w http.ResponseWriter, r *http.Request) {
     core.RenderTemplate(w, pages.Login())
-    return nil
 }
 
-func (h AuthHandler) GetRegister(w http.ResponseWriter, r *http.Request) error {
+func (h AuthHandler) GetRegister(w http.ResponseWriter, r *http.Request) {
     core.RenderTemplate(w, pages.Register())
-    return nil
 }
 
-func (h AuthHandler) PostLogin(w http.ResponseWriter, r *http.Request) error {
+func (h AuthHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
     r.ParseForm()
     email := r.FormValue("email")
     password := r.FormValue("password")
@@ -44,21 +42,18 @@ func (h AuthHandler) PostLogin(w http.ResponseWriter, r *http.Request) error {
     user, err := h.UserService.GetUserByEmail(email)
     if err != nil {
         w.WriteHeader(http.StatusUnauthorized)
-        return nil
     }
 
     match, err := h.PasswordService.CheckPassword(password, user.Id); 
     if !match || err != nil {
         w.WriteHeader(http.StatusUnauthorized)
-        return nil
     }
 
     h.injectJwt(w, user)
     http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-    return nil
 }
 
-func (h AuthHandler) PostRegister(w http.ResponseWriter, r *http.Request) error {
+func (h AuthHandler) PostRegister(w http.ResponseWriter, r *http.Request) {
     r.ParseForm()
     user := &users.User{
         Email: r.FormValue("email"),
@@ -66,27 +61,23 @@ func (h AuthHandler) PostRegister(w http.ResponseWriter, r *http.Request) error 
 
     if err := h.UserService.SaveUser(user); err != nil {
         w.WriteHeader(http.StatusBadRequest)
-        return nil
     }
 
     user, err := h.UserService.GetUserByEmail(user.Email)
     if err != nil {
         w.WriteHeader(http.StatusBadRequest)
-        return nil
     }
     
     password := r.FormValue("password")
     if err := h.PasswordService.SavePassword(password, user.Id); err != nil {
         w.WriteHeader(http.StatusBadRequest)
-        return nil
     }
 
     h.injectJwt(w, user)
     http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-    return nil
 }
 
-func (h AuthHandler) PostLogout(w http.ResponseWriter, r *http.Request) error {
+func (h AuthHandler) PostLogout(w http.ResponseWriter, r *http.Request) {
     cookie := &http.Cookie{
         Name: "Authorization",
         Value: "",
@@ -95,12 +86,10 @@ func (h AuthHandler) PostLogout(w http.ResponseWriter, r *http.Request) error {
 
     http.SetCookie(w, cookie)
     http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-    return nil
 }
 
-func (h AuthHandler) injectJwt(w http.ResponseWriter, user *users.User) error {
+func (h AuthHandler) injectJwt(w http.ResponseWriter, user *users.User) {
     expiry := time.Now().Add(time.Hour * 24)
-
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
         "uid": user.Id,
         "exp": expiry.Unix(),
@@ -108,7 +97,7 @@ func (h AuthHandler) injectJwt(w http.ResponseWriter, user *users.User) error {
 
     tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
     if err != nil {
-        return err
+        w.WriteHeader(http.StatusUnauthorized)
     }
 
     cookie := &http.Cookie{
@@ -118,5 +107,4 @@ func (h AuthHandler) injectJwt(w http.ResponseWriter, user *users.User) error {
     }
 
     http.SetCookie(w, cookie)
-    return nil
 }

@@ -18,9 +18,8 @@ func TestUserHandler_GetUsers(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/users", nil)
-	err := handler.GetUsers(w, r)
+	handler.GetUsers(w, r)
 
-	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, w.Code)
 
     ct := w.Header().Get("Content-Type")

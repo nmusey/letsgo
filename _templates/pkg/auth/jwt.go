@@ -12,15 +12,13 @@ import (
 var tokenName = "authorization"
 var UserIdCookieName = "user_id"
 
-type AuthenticateMiddleware struct {
-    handler http.Handler
+type JwtMiddleware struct {}
+
+func NewAuthenticatedMiddleware() *JwtMiddleware {
+    return &JwtMiddleware{}
 }
 
-func NewAuthenticatedMiddleware(handler http.Handler) *AuthenticateMiddleware {
-    return &AuthenticateMiddleware{handler: handler}
-}
-
-func (m AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (m JwtMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     tokenCookie, err := r.Cookie(tokenName)
     if err != nil {
         unauthorized(w, r)
@@ -39,7 +37,6 @@ func (m AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request
     }
 
     r.AddCookie(&cookie)
-    m.handler.ServeHTTP(w, r)
 }
 
 func unauthorized(w http.ResponseWriter, r *http.Request) {

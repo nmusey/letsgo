@@ -16,11 +16,14 @@ type RouterContext struct {
     DB  Database
 }
 
-type HttpHandler func(http.ResponseWriter, *http.Request)error
+type Route struct {
+    path        string
+    handler     http.HandlerFunc
+    middleware  []http.Handler
+}
 
 type HttpRouter struct {
     Mux *http.ServeMux
-
     ctx *RouterContext
 }
 
@@ -37,13 +40,22 @@ func (r *HttpRouter) Serve() {
     http.ListenAndServe(port, r.Mux)
 }
 
-func (r *HttpRouter) MapRoutes(routes map[string]HttpHandler) *HttpRouter {
-    for route, handler := range routes {
-        r.Mux.HandleFunc(route, func (w http.ResponseWriter, r *http.Request) {
-            if err := handler(w, r); err != nil {
-                w.WriteHeader(http.StatusInternalServerError)
-                return
+func BuildRoute(path string, handler http.HandlerFunc, middleware ...http.Handler) Route {
+    return Route{
+        path: path,
+        handler: handler, 
+        middleware: middleware,
+    }
+}
+
+func (r *HttpRouter) MapRoutes(routes []Route) *HttpRouter {
+    for _, route := range routes {
+        r.Mux.HandleFunc(route.path, func(w http.ResponseWriter, r *http.Request) {
+            for _, middleware := range route.middleware {
+                middleware.ServeHTTP(w, r)
             }
+
+            route.handler(w, r)
         })
     }
 
@@ -62,4 +74,3 @@ func ReadJSON(r *http.Request, payload interface{}) error {
 func RenderTemplate(w http.ResponseWriter, components templ.Component) {
     layouts.MainLayout(components).Render(context.Background(), w)
 }
-
