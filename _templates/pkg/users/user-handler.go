@@ -1,15 +1,21 @@
-package users 
+package users
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"$appRepo/pkg/core"
 )
 
+type userService interface {
+    GetUsers() ([]User, error)
+    GetUserById(int) (*User, error)
+}
+
 type UserHandler struct {
     ctx     *core.RouterContext
-    UserService UserService
+    UserService userService
 }
 
 func NewUserHandler(ctx *core.RouterContext) *UserHandler {
@@ -22,11 +28,17 @@ func NewUserHandler(ctx *core.RouterContext) *UserHandler {
 func (h UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
     users, err := h.UserService.GetUsers()
     if err != nil {
+        w.WriteHeader(http.StatusNotFound)
+        return
+    }
+
+    response, err := json.Marshal(users)
+    if err != nil {
         w.WriteHeader(http.StatusInternalServerError)
         return
     }
 
-    core.WriteJSON(w, users)
+    w.Write(response)
 }
 
 func (h UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
@@ -44,5 +56,11 @@ func (h UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    core.WriteJSON(w, user)
+    response, err := json.Marshal(user)
+    if err != nil {
+        w.WriteHeader(http.StatusInternalServerError)
+        return
+    }
+
+    w.Write(response)
 }

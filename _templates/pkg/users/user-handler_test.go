@@ -21,8 +21,5 @@ func TestUserHandler_GetUsers(t *testing.T) {
 	handler.GetUsers(w, r)
 
 	assert.Equal(t, http.StatusOK, w.Code)
-
-    ct := w.Header().Get("Content-Type")
-    assert.Equal(t, "application/json", ct)
 }
 

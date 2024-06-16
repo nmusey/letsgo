@@ -4,13 +4,6 @@ import (
 	"$appRepo/pkg/core"
 )
 
-type UserService interface {
-    SaveUser(*User) error
-    GetUsers() ([]User, error)
-    GetUserById(int) (*User, error)
-    GetUserByEmail(string) (*User, error)
-}
-
 type SQLUserService struct {
     ctx *core.RouterContext
 }

@@ -12,10 +12,20 @@ import (
 	"$appRepo/views/pages"
 )
 
+type passwordService interface {
+    SavePassword(string, int) error
+    CheckPassword(string, int) (bool, error)
+}
+
+type userService interface {
+    SaveUser(*users.User) error
+    GetUserByEmail(string) (*users.User, error)
+}
+
 type AuthHandler struct {
     ctx             *core.RouterContext
-    UserService     users.UserService
-    PasswordService PasswordService
+    UserService     userService
+    PasswordService passwordService
 }
 
 func NewAuthHandler(ctx *core.RouterContext) *AuthHandler {
