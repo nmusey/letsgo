@@ -8,9 +8,14 @@ import (
 	"$appRepo/pkg/core"
 )
 
+type userService interface {
+    GetUsers() ([]User, error)
+    GetUserById(int) (*User, error)
+}
+
 type UserHandler struct {
     ctx     *core.RouterContext
-    UserService UserService
+    UserService userService
 }
 
 func NewUserHandler(ctx *core.RouterContext) *UserHandler {

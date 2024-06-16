@@ -5,11 +5,6 @@ import (
 	"$appRepo/pkg/core"
 )
 
-type PasswordService interface {
-    SavePassword(string, int) error
-    CheckPassword(string, int) (bool, error)
-}
-
 type SQLPasswordService struct {
     ctx *core.RouterContext
 }
