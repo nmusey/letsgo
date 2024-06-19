@@ -1,7 +1,7 @@
 package utils
 
 import (
-    "strings"
+	"strings"
 )
 
 func ReplaceAllInString(str string, replacements map[string]string) string {
