@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"$appRepo/pkg/auth"
-	"$appRepo/pkg/core"
-	"$appRepo/pkg/users"
+	"$appRepo/internal/auth"
+	"$appRepo/internal/core"
+	"$appRepo/internal/users"
 )
 
 func BuildRoutes(ctx *core.RouterContext) []core.Route {

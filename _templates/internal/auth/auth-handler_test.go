@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"$appRepo/pkg/core"
-	"$appRepo/pkg/users"
+	"$appRepo/internal/core"
+	"$appRepo/internal/users"
 )
 
 func TestAuthHandler_GetLogin(t *testing.T) {

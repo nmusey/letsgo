@@ -4,6 +4,7 @@
 build:
 	@mkdir -p ./build/src/
 	@mkdir -p ./build/bin/
+	@mkdir -p ./internal/cli/_templates
 	@cp -r _templates ./internal/cli/_templates
 	@cp main.go ./build/src/main.go
 	@go build -o ./build/bin/letsgo ./build/src/main.go
@@ -28,7 +29,6 @@ test: build-test
 	@echo -e "\033[0;34mTesting built repo now...\033[m\n"
 	@make build-test
 	@make -C ./build/test-repo test
-	@echo -e "\n\033[0;32mAll tests passed\033[m\n"
 
 clean:
 	# Clean up the build artifacts
