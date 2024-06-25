@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"$appRepo/pkg/core"
+	"$appRepo/internal/core"
 )
 
 type userService interface {

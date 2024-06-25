@@ -2,7 +2,7 @@ package auth
 
 import (
     "golang.org/x/crypto/bcrypt"
-	"$appRepo/pkg/core"
+	"$appRepo/internal/core"
 )
 
 type SQLPasswordService struct {

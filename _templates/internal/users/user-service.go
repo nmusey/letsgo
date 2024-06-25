@@ -1,7 +1,7 @@
 package users
 
 import (
-	"$appRepo/pkg/core"
+	"$appRepo/internal/core"
 )
 
 type SQLUserService struct {

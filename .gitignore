@@ -1,4 +1,2 @@
-test
-letsgo
-
-cmd/cli/_templates
+build
+internal/cli/_templates

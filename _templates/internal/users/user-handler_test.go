@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"$appRepo/pkg/core"
+	"$appRepo/internal/core"
 )
 
 func TestUserHandler_GetUsers(t *testing.T) {
