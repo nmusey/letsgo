@@ -7,7 +7,6 @@ RUN go install github.com/a-h/templ/cmd/templ@latest;
 
 COPY go.mod go.sum ./
 RUN go mod download;
-RUN go mod verify;
 RUN go mod tidy;
 
 COPY . .

@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"$appRepo/pkg/core"
+	"$appRepo/internal/core"
 )
 
 func main() {

@@ -7,8 +7,8 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 
-	"$appRepo/pkg/core"
-	"$appRepo/pkg/users"
+	"$appRepo/internal/core"
+	"$appRepo/internal/users"
 	"$appRepo/views/pages"
 )
 
