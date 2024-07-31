@@ -2,12 +2,10 @@
 
 # Build a binary for the CLI
 build:
-	@mkdir -p ./build/src/
 	@mkdir -p ./build/bin/
 	@mkdir -p ./internal/cli/_templates
-	@cp -r _templates ./internal/cli/_templates
-	@cp main.go ./build/src/main.go
-	@go build -o ./build/bin/letsgo ./build/src/main.go
+	cp -r _templates ./internal/cli/
+	@go build -o ./build/bin/letsgo ./main.go
 	@chmod +x ./build/bin/letsgo
 	@rm -rf ./internal/cli/_templates
 	@echo "letsgo built in ./build/bin"
@@ -17,23 +15,22 @@ build-test: clean build
 	@./build/bin/letsgo make test-repo test-repo
 	@mv ./test-repo ./build/
 
+# Run a test server for manual testing
 run-test: build-test
-	# Run a test server for manual testing
-	@make build-test
 	@docker compose -f ./build/test-repo/docker-compose.yml up 
 
+# Run unit tests on the CLI and the test application
 test: build-test
-	# Run unit tests on the CLI and the test application
 	@go test ./internal/utils/... # can't test cli package, and don't need to
 	@echo -e "\n\033[0;32mAll tests passed\033[m\n"
 	@echo -e "\033[0;34mTesting built repo now...\033[m\n"
-	@make build-test
 	@make -C ./build/test-repo test
 
+# Clean up the build artifacts
 clean:
-	# Clean up the build artifacts
 	@rm -rf ./build
 
+# Install the binary to the gopath
 install: build
 	@cp ./build/bin/letsgo $(GOPATH)/bin/letsgo
 	@echo "letsgo installed. Run letsgo make something-cool github.com/youruser/something-cool"
