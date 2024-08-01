@@ -12,7 +12,7 @@ import (
 )
 
 func TestAuthHandler_GetLogin(t *testing.T) {
-	handler := AuthHandler{ctx: &core.RouterContext{}}
+	handler := AuthHandler{router: core.Router{}}
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/login", nil)
@@ -22,7 +22,7 @@ func TestAuthHandler_GetLogin(t *testing.T) {
 }
 
 func TestAuthHandler_GetRegister(t *testing.T) {
-	handler := AuthHandler{ctx: &core.RouterContext{}}
+	handler := AuthHandler{router: core.Router{}}
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/register", nil)
@@ -33,7 +33,7 @@ func TestAuthHandler_GetRegister(t *testing.T) {
 
 func TestAuthHandler_PostLogin_Success(t *testing.T) {
 	handler := AuthHandler{
-        ctx: &core.RouterContext{},
+        router: core.Router{},
         UserService: users.MockUserService{},
         PasswordService: MockPasswordService{},
     }
@@ -47,7 +47,7 @@ func TestAuthHandler_PostLogin_Success(t *testing.T) {
 
 func TestAuthHandler_PostLogin_Error(t *testing.T) {
 	handler := AuthHandler{
-        ctx: &core.RouterContext{},
+        router: core.Router{},
         UserService: users.MockUserService{ShouldError: true},
         PasswordService: MockPasswordService{ShouldError: true},
     }
@@ -61,7 +61,7 @@ func TestAuthHandler_PostLogin_Error(t *testing.T) {
 
 func TestAuthHandler_PostRegister_Success(t *testing.T) {
 	handler := AuthHandler{
-        ctx: &core.RouterContext{},
+        router: core.Router{},
         UserService: users.MockUserService{},
         PasswordService: MockPasswordService{},
     }
@@ -75,7 +75,7 @@ func TestAuthHandler_PostRegister_Success(t *testing.T) {
 
 func TestAuthHandler_PostRegister_UserError(t *testing.T) {
 	handler := AuthHandler{
-        ctx: &core.RouterContext{},
+        router: core.Router{},
         UserService: users.MockUserService{ShouldError: true},
         PasswordService: MockPasswordService{},
     }
@@ -90,7 +90,7 @@ func TestAuthHandler_PostRegister_UserError(t *testing.T) {
 
 func TestAuthHandler_PostRegister_PasswordError(t *testing.T) {
 	handler := AuthHandler{
-        ctx: &core.RouterContext{},
+        router: core.Router{},
         UserService: users.MockUserService{},
         PasswordService: MockPasswordService{ShouldError: true},
     }

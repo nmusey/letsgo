@@ -10,12 +10,13 @@ import (
 	"$appRepo/internal/users"
 )
 
-func BuildRoutes(ctx *core.RouterContext) []core.Route {
-	authHandler := auth.NewAuthHandler(ctx)
-	userHandler := users.NewUserHandler(ctx)
+func BuildRoutes(router *core.Router) {
+	authHandler := auth.NewAuthHandler(*router)
+	userHandler := users.NewUserHandler(*router)
 
-	return []core.Route{
-		core.BuildRoute("POST /migrate", buildMigrationHandler(ctx)),
+	router.Routes = []core.Route{
+		core.BuildRoute("POST /migrate", buildMigrationHandler(*router)),
+
 		core.BuildRoute("GET /login", authHandler.GetLogin),
 		core.BuildRoute("GET /register", authHandler.GetRegister),
 
@@ -27,12 +28,9 @@ func BuildRoutes(ctx *core.RouterContext) []core.Route {
 	}
 }
 
-func buildMigrationHandler(ctx *core.RouterContext) http.HandlerFunc {
+func buildMigrationHandler(router core.Router) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Connecting to database...")
-		core.BlockingBackoff(ctx.DB.Connect, 5, 3 * time.Second)
-
 		fmt.Println("Running migrations...")
-		core.BlockingBackoff(ctx.DB.Migrate, 5, 3 * time.Second)
+		core.BlockingBackoff(router.DB.Migrate, 5, 3 * time.Second)
 	}
 }
