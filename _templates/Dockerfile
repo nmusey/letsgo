@@ -1,4 +1,4 @@
-FROM golang:1.22 as base
+FROM golang:1.22 AS base
 
 WORKDIR /usr/app
 
@@ -12,9 +12,9 @@ RUN go mod tidy;
 COPY . .
 RUN templ generate;
 
-FROM base as runner
+FROM base AS dev
 RUN go build -o main cmd/http/*.go;
 CMD ["air", "-c", ".air.toml"]
 
-FROM base as tester
+FROM base AS tester
 CMD ["go", "test", "./..."]

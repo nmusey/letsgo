@@ -12,10 +12,11 @@ import (
 )
 
 type Router struct {
-    DB  Database
-    DBConfig DatabaseConfig
-    Routes []Route
-    Mux *http.ServeMux
+    DB          Database
+    DBConfig    DatabaseConfig
+    Routes      []Route
+    Mux         *http.ServeMux
+    Cache       Cache
 }
 
 type Route struct {

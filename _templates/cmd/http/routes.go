@@ -25,7 +25,25 @@ func BuildRoutes(router *core.Router) {
 		core.BuildRoute("POST /logout", authHandler.PostLogout),
 
 		core.BuildRoute("GET /users", userHandler.GetUsers, &auth.JwtMiddleware{}, &core.JsonMiddleware{}),
+        core.BuildRoute("GET /ping", handlePing),
+        core.BuildRoute("GET /cache", buildCacheHandler(*router)),
 	}
+}
+
+func handlePing(w http.ResponseWriter, r *http.Request) {
+    w.Write([]byte("pong"))
+}
+
+func buildCacheHandler(router core.Router) http.HandlerFunc {
+    return func (w http.ResponseWriter, r *http.Request) {
+        router.Cache.Set("test", []byte("Hello world!"))
+        resp, err := router.Cache.Get("test")
+        if err != nil {
+            w.WriteHeader(http.StatusInternalServerError)
+        }
+
+        w.Write(resp)
+    }
 }
 
 func buildMigrationHandler(router core.Router) http.HandlerFunc {
