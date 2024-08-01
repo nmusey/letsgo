@@ -1,4 +1,4 @@
-module test-repo
+module $appRepo
 
 go 1.22
 

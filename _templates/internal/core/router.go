@@ -11,8 +11,11 @@ import (
 	"$appRepo/views/layouts"
 )
 
-type RouterContext struct {
+type Router struct {
     DB  Database
+    DBConfig DatabaseConfig
+    Routes []Route
+    Mux *http.ServeMux
 }
 
 type Route struct {
@@ -21,19 +24,9 @@ type Route struct {
     middleware  []http.Handler
 }
 
-type HttpRouter struct {
-    Mux *http.ServeMux
-    ctx *RouterContext
-}
+func (r *Router) Serve() {
+    r.MapRoutes()
 
-func NewHttpRouter(ctx *RouterContext) *HttpRouter {
-    return &HttpRouter{
-        Mux: http.NewServeMux(),
-        ctx: ctx,
-    }
-}
-
-func (r *HttpRouter) Serve() {
     port := ":" + os.Getenv("APP_PORT")
     fmt.Printf("Listening on port %s\n", port)
     http.ListenAndServe(port, r.Mux)
@@ -47,8 +40,8 @@ func BuildRoute(path string, handler http.HandlerFunc, middleware ...http.Handle
     }
 }
 
-func (r *HttpRouter) MapRoutes(routes []Route) *HttpRouter {
-    for _, route := range routes {
+func (r *Router) MapRoutes() {
+    for _, route := range r.Routes {
         r.Mux.HandleFunc(route.path, func(w http.ResponseWriter, r *http.Request) {
             for _, middleware := range route.middleware {
                 middleware.ServeHTTP(w, r)
@@ -57,8 +50,6 @@ func (r *HttpRouter) MapRoutes(routes []Route) *HttpRouter {
             route.handler(w, r)
         })
     }
-
-    return r
 }
 
 func RenderTemplate(w http.ResponseWriter, components templ.Component) {

@@ -23,16 +23,16 @@ type userService interface {
 }
 
 type AuthHandler struct {
-    ctx             *core.RouterContext
+    router          core.Router
     UserService     userService
     PasswordService passwordService
 }
 
-func NewAuthHandler(ctx *core.RouterContext) *AuthHandler {
+func NewAuthHandler(router core.Router) *AuthHandler {
     return &AuthHandler{
-        ctx: ctx,
-        UserService: users.NewUserService(ctx),
-        PasswordService: NewPasswordService(ctx),
+        router: router,
+        UserService: users.NewUserService(router),
+        PasswordService: NewPasswordService(router),
     }
 }
 

@@ -12,7 +12,7 @@ import (
 
 func TestUserHandler_GetUsers(t *testing.T) {
 	handler := UserHandler{
-        ctx: &core.RouterContext{},
+        router: core.Router{},
         UserService: MockUserService{},
     }
 

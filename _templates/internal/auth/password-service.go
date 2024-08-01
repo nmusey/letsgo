@@ -6,12 +6,12 @@ import (
 )
 
 type SQLPasswordService struct {
-    ctx *core.RouterContext
+    router core.Router
 }
 
-func NewPasswordService(ctx *core.RouterContext) *SQLPasswordService {
+func NewPasswordService(router core.Router) *SQLPasswordService {
     return &SQLPasswordService{
-        ctx: ctx,
+        router: router,
     }
 }
 
@@ -27,13 +27,13 @@ func (s SQLPasswordService) SavePassword(password string, userId int) error {
     }
 
     query := "INSERT INTO passwords(user_id, password) VALUES :password, :userId"
-    _, err = s.ctx.DB.NamedExec(query, passwordObj)
+    _, err = s.router.DB.NamedExec(query, passwordObj)
     return err
 }
 
 func (s SQLPasswordService) CheckPassword(password string, userId int) (bool, error) {
     passwordObj := Password{}
-    if err := s.ctx.DB.Get(&passwordObj, "user_id = $1", userId); err != nil {
+    if err := s.router.DB.Get(&passwordObj, "user_id = $1", userId); err != nil {
         return false, err
     }
 

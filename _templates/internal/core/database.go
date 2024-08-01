@@ -4,6 +4,7 @@ import (
     "database/sql"
     "fmt"
     "os"
+    "time"
 
     "github.com/jmoiron/sqlx"
     "github.com/golang-migrate/migrate/v4"
@@ -24,6 +25,15 @@ type DatabaseConfig struct {
     Host     string
     Port     string
     Name     string
+}
+
+func NewDatabaseConnection(config DatabaseConfig) Database {
+    db := Database{
+        Config: config,
+    }
+
+    BlockingBackoff(db.Connect, 5, 3 * time.Second)
+    return db
 }
 
 func GetDefaultDatabaseConfig() DatabaseConfig {

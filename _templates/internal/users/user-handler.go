@@ -14,14 +14,14 @@ type userService interface {
 }
 
 type UserHandler struct {
-    ctx     *core.RouterContext
     UserService userService
+    router core.Router
 }
 
-func NewUserHandler(ctx *core.RouterContext) *UserHandler {
+func NewUserHandler(router core.Router) *UserHandler {
     return &UserHandler{
-        ctx: ctx,
-        UserService: NewUserService(ctx),
+        UserService: NewUserService(router),
+        router: router,
     }
 }
 
