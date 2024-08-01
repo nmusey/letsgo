@@ -1,14 +1,12 @@
-version: '3.8'
 services:
     server:
         build:
             context: .
+            target: dev
         depends_on:
             - database
         ports:
             - '${APP_PORT}:${APP_PORT}'
-        volumes:
-          - '.:/usr/app/'
         environment:
           - "DB_HOST=${DB_HOST}"
           - "DB_USER=${DB_USER}"
@@ -17,6 +15,7 @@ services:
           - "DB_PORT=${DB_PORT}"
           - "APP_PORT=${APP_PORT}"
           - "JWT_SECRET=${JWT_SECRET}"
+          - "CACHE_SERVER=${CACHE_SERVER}"
 
     database:
         image: postgres:15
@@ -30,6 +29,10 @@ services:
         volumes: 
           - dbdata:/var/lib/postgresql/data
           - ./migrations:/migrations
+
+    cache:
+        image: memcached:1.6
+        restart: always
 
 volumes:
   dbdata:
