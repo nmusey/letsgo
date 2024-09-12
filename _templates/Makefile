@@ -2,7 +2,7 @@ run: build
 	@docker compose up --build
 
 build:
-	@docker  build -t $appName:runner --target runner .
+	@docker  build -t $appName:dev .
 	@go build -o $appName cmd/http/main.go
 
 test:
