@@ -2,40 +2,57 @@ package cli
 
 import (
 	"embed"
+	"os"
 	"path"
 
-    "github.com/nmusey/letsgo/internal/utils"
+	"github.com/nmusey/letsgo/internal/utils"
+	"golang.org/x/mod/modfile"
 )
 
-type App struct {
-	Name  string
-    Repo string
+type Template struct {
     Root string	
+    TemplateName string
     Replacements map[string]string
     Filesystem embed.FS
 }
 
-//go:embed _templates/*
-var filesystem embed.FS
+//go:embed _templates/app/*
+var appFilesystem embed.FS
 
-func NewApp(name string, repo string, root string) error {
-	app := App{
-		Name:  name,
-        Repo: repo,
+func NewAppTemplate(name string, repo string, root string) error {
+	template := Template{
         Root: path.Join(root, name),
+        TemplateName: "app",
         Replacements: map[string]string{
             "$appName": name,
             "$appRepo": repo,
             "$dbPort":  "5432",
 	    },
-        Filesystem: filesystem,
+        Filesystem: appFilesystem,
 	}
 
-    return app.initializeDirectory("")
+    return template.initializeDirectory("")
 }
 
-func (app App) initializeDirectory(directory string) error {
-    utils.UpsertFolder(path.Join(app.Root, directory))
+//go:embed _templates/package/*
+var packageFilesystem embed.FS
+func NewPackageTemplate(packageName string, root string) error {
+    template := Template {
+        Root: root,
+        TemplateName: "package",
+        Replacements: map[string]string{
+            "$package": packageName,
+        },
+        Filesystem: packageFilesystem,
+    }
+
+    template.Replacements["$appRepo"] = template.getGoModuleName()
+    return template.initializeDirectory("")
+}
+
+func (app Template) initializeDirectory(directory string) error {
+    replacedDirectory := utils.ReplaceAllInString(directory, app.Replacements)
+    utils.UpsertFolder(path.Join(app.Root, replacedDirectory))
     files := app.readDirectory(directory)
     if err := app.copyFiles(files); err != nil {
         return err
@@ -44,7 +61,7 @@ func (app App) initializeDirectory(directory string) error {
     return nil
 }
 
-func (app App) readDirectory(directory string) map[string]string {
+func (app Template) readDirectory(directory string) map[string]string {
     files, err := app.Filesystem.ReadDir(app.getTemplatePath(directory))
     if err != nil {
         panic(err)
@@ -66,7 +83,7 @@ func (app App) readDirectory(directory string) map[string]string {
     return templates
 }
 
-func (app App) isEmbeddedDirectory(filepath string) bool {
+func (app Template) isEmbeddedDirectory(filepath string) bool {
     fsFile, err := app.Filesystem.Open(app.getTemplatePath(filepath))
     if err != nil {
         return false
@@ -80,7 +97,7 @@ func (app App) isEmbeddedDirectory(filepath string) bool {
     return fileStats.IsDir()
 }
 
-func (app *App) copyFiles(files map[string]string) error {
+func (app *Template) copyFiles(files map[string]string) error {
 	for filepath, contents := range files {
         // We need to treat go.mod specially because it can't be embedded directly
         if path.Base(filepath) == "go_mod" {
@@ -95,12 +112,24 @@ func (app *App) copyFiles(files map[string]string) error {
 	return nil
 }
 
-func (app *App) copyFile(filepath string, contents string) error {
-	outpath := path.Join(app.Root, filepath)
+func (app *Template) copyFile(filepath string, contents string) error {
+    replacedPath := utils.ReplaceAllInString(filepath, app.Replacements)
+	outpath := path.Join(app.Root, replacedPath)
 	return utils.CopyTemplateFile(contents, outpath, app.Replacements)
 }
 
-func (app *App) getTemplatePath(filepath string) string {
+func (app *Template) getTemplatePath(filepath string) string {
     // _templates is copied when running make build, so it can sit in the root directory but still run with the limitations of the embed package
-    return path.Join("_templates", filepath)
+    return path.Join("_templates", app.TemplateName, filepath)
+}
+
+func (app *Template) getGoModuleName() string {
+    filepath := "./go.mod"
+    contents, err := os.ReadFile(filepath)
+    if err != nil {
+        panic("Unable to read go.mod file: " + err.Error())
+    }
+
+    modfile, err := modfile.Parse("./go.mod", contents, nil) 
+    return modfile.Module.Mod.Path
 }

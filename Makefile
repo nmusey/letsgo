@@ -2,18 +2,21 @@
 
 # Build a binary for the CLI
 build:
-	@mkdir -p ./build/bin/
 	@mkdir -p ./internal/cli/_templates
-	cp -r _templates ./internal/cli/
+	@cp -r _templates ./internal/cli/
+	@mkdir -p ./build/bin/
 	@go build -o ./build/bin/letsgo ./main.go
 	@chmod +x ./build/bin/letsgo
-	@rm -rf ./internal/cli/_templates
 	@echo "letsgo built in ./build/bin"
+	@rm -rf ./internal/cli/_templates
 
 # Build a test application to run unit tests against
 build-test: clean build
 	@./build/bin/letsgo make test-repo test-repo
 	@mv ./test-repo ./build/
+
+build-pkg: clean build build-test
+	@(cd build/test-repo && ../bin/letsgo pkg test)
 
 # Run a test server for manual testing
 run-test: build-test
