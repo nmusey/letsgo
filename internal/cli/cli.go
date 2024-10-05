@@ -20,6 +20,11 @@ func RunCli() {
 				Usage: "letsgo make name repo",
                 Action: makeApp,
 			},
+            {
+                Name: "pkg",
+                Usage: "letsgo pkg name",
+                Action: makePackage,
+            },
 		},
 	}
 
@@ -36,10 +41,24 @@ func makeApp(ctx *cli.Context) error {
 		return err
 	}
 
-	if err := NewApp(name, repo, pwd); err != nil {
+	if err := NewAppTemplate(name, repo, pwd); err != nil {
 		log.Fatal("Unable to create new app: " + err.Error())
 	}
 
 	fmt.Printf("Created app %s in directory %s\n", name, pwd)
 	return nil
+}
+
+func makePackage(ctx *cli.Context) error {
+    name := ctx.Args().Get(0)
+    pwd, err := os.Getwd()
+    if err != nil {
+        return err
+    }
+
+    if err := NewPackageTemplate(name, pwd); err != nil {
+        log.Fatal("Unable to create package: " + err.Error())
+    }
+
+    return nil
 }
