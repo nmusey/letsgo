@@ -7,6 +7,8 @@ import (
 
 	"github.com/nmusey/letsgo/internal/utils"
 	"golang.org/x/mod/modfile"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type Template struct {
@@ -18,7 +20,6 @@ type Template struct {
 
 //go:embed _templates/app/*
 var appFilesystem embed.FS
-
 func NewAppTemplate(name string, repo string, root string) error {
 	template := Template{
         Root: path.Join(root, name),
@@ -42,6 +43,7 @@ func NewPackageTemplate(packageName string, root string) error {
         TemplateName: "package",
         Replacements: map[string]string{
             "$package": packageName,
+            "$model": cases.Title(language.English).String(packageName),
         },
         Filesystem: packageFilesystem,
     }

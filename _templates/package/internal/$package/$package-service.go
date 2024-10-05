@@ -4,12 +4,12 @@ import (
     "$appRepo/internal/core"
 )
 
-type SQL$packageService struct {
+type SQL$modelService struct {
     router core.Router
 }
 
-func NewSQL$packageService(router core.Router) SQL$packageService {
-    return SQL$packageService {
+func NewSQL$modelService(router core.Router) SQL$modelService {
+    return SQL$modelService {
         router: router,
     }
 }

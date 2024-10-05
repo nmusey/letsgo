@@ -4,12 +4,12 @@ import (
     "$appRepo/internal/core"
 )
 
-type $packageHandler struct {
+type $modelHandler struct {
     router core.Router
 }
 
-func New$packageHander(router core.Router) $packageHandler {
-    return $packageHandler {
+func New$modelHander(router core.Router) $modelHandler {
+    return $modelHandler {
         router: router,
     }
 }

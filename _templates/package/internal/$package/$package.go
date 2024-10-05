@@ -1,5 +1,5 @@
 package $packages
 
-type $package struct {
+type $model struct {
     Id  int `json:"id" db:"id"`
 }
