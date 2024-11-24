@@ -1,120 +1,125 @@
 package auth
 
 import (
+	"encoding/json"
 	"net/http"
-	"os"
-	"time"
-
-	"github.com/golang-jwt/jwt/v5"
+	"net/mail"
 
 	"$appRepo/internal/core"
 	"$appRepo/internal/users"
-	"$appRepo/views/pages"
 )
 
-type passwordService interface {
-    SavePassword(string, int) error
-    CheckPassword(string, int) (bool, error)
-}
-
-type userService interface {
-    SaveUser(*users.User) error
-    GetUserByEmail(string) (*users.User, error)
-}
-
 type AuthHandler struct {
-    router          core.Router
-    UserService     userService
-    PasswordService passwordService
+	service *AuthService
 }
 
-func NewAuthHandler(router core.Router) *AuthHandler {
-    return &AuthHandler{
-        router: router,
-        UserService: users.NewUserService(router),
-        PasswordService: NewPasswordService(router),
-    }
+func NewAuthHandler(router *core.Router) *AuthHandler {
+	return &AuthHandler{
+		service: NewAuthService(router),
+	}
 }
 
-func (h AuthHandler) GetLogin(w http.ResponseWriter, r *http.Request) {
-    core.RenderTemplate(w, pages.Login())
-}
-
-func (h AuthHandler) GetRegister(w http.ResponseWriter, r *http.Request) {
-    core.RenderTemplate(w, pages.Register())
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func (h AuthHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
-    r.ParseForm()
-    email := r.FormValue("email")
-    password := r.FormValue("password")
+	var req LoginRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		h.error(w, err, http.StatusBadRequest)
+		return
+	}
 
-    user, err := h.UserService.GetUserByEmail(email)
-    if err != nil {
-        w.WriteHeader(http.StatusUnauthorized)
-    }
+	user, err := h.service.UserService.Store.GetUserByEmail(req.Email)
+	if err != nil {
+        h.error(w, UserNotFoundError, http.StatusNotFound)
+        return
+	}
 
-    match, err := h.PasswordService.CheckPassword(password, user.Id); 
-    if !match || err != nil {
-        w.WriteHeader(http.StatusUnauthorized)
-    }
+	correct, err := h.service.CheckPassword(req.Password, user.Id)
+	if err != nil || !correct {
+        h.error(w, UserNotFoundError, http.StatusNotFound)
+        return 
+	}
 
-    h.injectJwt(w, user)
-    http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+	cookie, err := h.service.GetAuthCookie(user)
+	if err != nil {
+        h.error(w, UserNotFoundError, http.StatusNotFound)
+        return 
+	}
+
+	http.SetCookie(w, cookie)
+}
+
+type RegisterRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func (h AuthHandler) PostRegister(w http.ResponseWriter, r *http.Request) {
-    r.ParseForm()
-    user := &users.User{
-        Email: r.FormValue("email"),
-    }
+	var req RegisterRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		h.error(w, err, http.StatusBadRequest)
+		return
+	}
 
-    if err := h.UserService.SaveUser(user); err != nil {
-        w.WriteHeader(http.StatusBadRequest)
-    }
-
-    user, err := h.UserService.GetUserByEmail(user.Email)
+    err = h.validatePostRegister(req)
     if err != nil {
-        w.WriteHeader(http.StatusBadRequest)
-    }
-    
-    password := r.FormValue("password")
-    if err := h.PasswordService.SavePassword(password, user.Id); err != nil {
-        w.WriteHeader(http.StatusBadRequest)
+        h.error(w, err, http.StatusBadRequest)
+        return
     }
 
-    h.injectJwt(w, user)
-    http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+	user := users.User{Email: req.Email}
+    err = h.service.UserService.Store.SaveUser(&user)
+    if err != nil {
+        h.error(w, err, http.StatusBadRequest)
+        return
+    } 
+
+    password := Password{Password: req.Password, UserId: user.Id}
+    err = h.service.Store.savePassword(&password)
+    if err != nil {
+        h.error(w, err, http.StatusInternalServerError)
+        return
+    }
+
+    cookie, err := h.service.GetAuthCookie(&user)
+    if err != nil {
+        h.error(w, err, http.StatusInternalServerError)
+        return
+    }
+
+    http.SetCookie(w, cookie)
 }
 
 func (h AuthHandler) PostLogout(w http.ResponseWriter, r *http.Request) {
-    cookie := &http.Cookie{
-        Name: "Authorization",
-        Value: "",
-        MaxAge: -1,
-    }
+	cookie := &http.Cookie{
+		Name:   "Authorization",
+		Value:  "",
+		MaxAge: -1,
+	}
 
-    http.SetCookie(w, cookie)
-    http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+	http.SetCookie(w, cookie)
+	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }
 
-func (h AuthHandler) injectJwt(w http.ResponseWriter, user *users.User) {
-    expiry := time.Now().Add(time.Hour * 24)
-    token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-        "uid": user.Id,
-        "exp": expiry.Unix(),
-    })
+func (h AuthHandler) error(w http.ResponseWriter, err error, status int) {
+	http.Error(w, err.Error(), status)
+}
 
-    tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+func (h AuthHandler) validatePostRegister(req RegisterRequest) error {
+    if len(req.Password) < PasswordMinLength {
+        return PasswordTooShortError
+    }
+
+    _, err := mail.ParseAddress(req.Email)
     if err != nil {
-        w.WriteHeader(http.StatusUnauthorized)
+        return InvalidEmailError
     }
 
-    cookie := &http.Cookie{
-        Name: "Authorization",
-        Value: tokenString,
-        Expires: expiry,
-    }
-
-    http.SetCookie(w, cookie)
+    return nil
 }
+

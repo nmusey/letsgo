@@ -6,7 +6,6 @@ import (
     "os"
     "time"
 
-    "github.com/jmoiron/sqlx"
     "github.com/golang-migrate/migrate/v4"
     "github.com/golang-migrate/migrate/v4/database/postgres"
     _ "github.com/golang-migrate/migrate/v4/source/file"
@@ -14,8 +13,7 @@ import (
 )
 
 type Database struct {
-    *sqlx.DB
-    sqlDB   *sql.DB
+    SqlDB   *sql.DB
     Config  DatabaseConfig
 }
 
@@ -58,18 +56,16 @@ func (db *Database) Connect() error {
 
     sqlConnection, err := sql.Open("postgres", connectionString)
     if err != nil {
+        fmt.Println(err)
         return err
     }
 
-    connection, err := sqlx.Connect("postgres", connectionString)
-
-    db.DB = connection
-    db.sqlDB = sqlConnection
+    db.SqlDB = sqlConnection
     return nil
 }
 
 func (db Database) Migrate() error {
-    driver, err := postgres.WithInstance(db.sqlDB, &postgres.Config{})
+    driver, err := postgres.WithInstance(db.SqlDB, &postgres.Config{})
     if err != nil {
         return err
     }

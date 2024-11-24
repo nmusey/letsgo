@@ -6,14 +6,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"$appRepo/internal/core"
 )
 
 func TestUserHandler_GetUsers(t *testing.T) {
 	handler := UserHandler{
-        router: core.Router{},
-        UserService: MockUserService{},
+        UserService: &UserService{
+            Store: &LocalUserStore{},
+        },
     }
 
 	w := httptest.NewRecorder()
