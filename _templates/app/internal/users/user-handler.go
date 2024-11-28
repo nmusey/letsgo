@@ -8,25 +8,18 @@ import (
 	"$appRepo/internal/core"
 )
 
-type userService interface {
-    GetUsers() ([]User, error)
-    GetUserById(int) (*User, error)
-}
-
 type UserHandler struct {
-    UserService userService
-    router core.Router
+    UserService *UserService
 }
 
-func NewUserHandler(router core.Router) *UserHandler {
+func NewUserHandler(router *core.Router) *UserHandler {
     return &UserHandler{
         UserService: NewUserService(router),
-        router: router,
     }
 }
 
 func (h UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
-    users, err := h.UserService.GetUsers()
+    users, err := h.UserService.Store.GetUsers()
     if err != nil {
         w.WriteHeader(http.StatusNotFound)
         return
@@ -45,7 +38,7 @@ func (h UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
     var id int
     id, err := strconv.Atoi(r.PathValue("id"))
 
-    user, err := h.UserService.GetUserById(id)
+    user, err := h.UserService.Store.GetUserById(id)
     if err != nil {
         w.WriteHeader(http.StatusInternalServerError)
         return

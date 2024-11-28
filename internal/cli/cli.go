@@ -25,6 +25,11 @@ func RunCli() {
                 Usage: "letsgo pkg name",
                 Action: makePackage,
             },
+            {
+                Name: "templ",
+                Usage: "letsgo templ",
+                Action: makeTempl,
+            },
 		},
 	}
 
@@ -58,6 +63,19 @@ func makePackage(ctx *cli.Context) error {
 
     if err := NewPackageTemplate(name, pwd); err != nil {
         log.Fatal("Unable to create package: " + err.Error())
+    }
+
+    return nil
+}
+
+func makeTempl(ctx *cli.Context) error {
+    pwd, err := os.Getwd()
+    if err != nil {
+        return err
+    }
+
+    if err := NewTemplTemplate(pwd); err != nil {
+        log.Fatal("Unable to add templ: " + err.Error())
     }
 
     return nil

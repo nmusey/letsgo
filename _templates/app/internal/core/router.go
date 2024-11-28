@@ -1,19 +1,13 @@
 package core
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"os"
-
-	"github.com/a-h/templ"
-
-	"$appRepo/views/layouts"
 )
 
 type Router struct {
     DB          Database
-    DBConfig    DatabaseConfig
     Routes      []Route
     Mux         *http.ServeMux
     Cache       Cache
@@ -51,8 +45,4 @@ func (r *Router) MapRoutes() {
             route.handler(w, r)
         })
     }
-}
-
-func RenderTemplate(w http.ResponseWriter, components templ.Component) {
-    layouts.MainLayout(components).Render(context.Background(), w)
 }

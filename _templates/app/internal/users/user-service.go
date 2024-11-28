@@ -4,42 +4,18 @@ import (
 	"$appRepo/internal/core"
 )
 
-type SQLUserService struct {
-	router core.Router
+type UserService struct {
+    Store UserStore
 }
 
-func NewUserService(router core.Router) SQLUserService {
-	return SQLUserService{
-		router: router,
-	}
+func NewUserService(router *core.Router) *UserService {
+    return &UserService{Store: newSQLUserStore(router.DB.SqlDB)}
 }
 
-func (u SQLUserService) SaveUser(user *User) error {
-	query := "INSERT INTO users(email) VALUES (:email)"
-	_, err := u.router.DB.NamedExec(query, user)
-	return err
-}
+type UserStore interface {
+	SaveUser(user *User) error
 
-func (u SQLUserService) GetUsers() ([]User, error) {
-	var users []User
-	query := "select * from users"
-
-	err := u.router.DB.Select(&users, query)
-	return users, err
-}
-
-func (u SQLUserService) GetUserById(id int) (*User, error) {
-	user := &User{}
-	query := "SELECT * FROM users WHERE id = $1"
-
-	err := u.router.DB.Get(user, query, id)
-	return user, err
-}
-
-func (u SQLUserService) GetUserByEmail(email string) (*User, error) {
-	user := &User{}
-	query := "SELECT * FROM users WHERE email = $1"
-
-	err := u.router.DB.Get(user, query, email)
-	return user, err
+	GetUsers() ([]User, error)
+	GetUserByEmail(email string) (*User, error)
+	GetUserById(id int) (*User, error)
 }
