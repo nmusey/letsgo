@@ -35,6 +35,5 @@ Example:
 `migrate` is not necessary locally but is preferred. You can always make migrations by copying the default files, but installing and running the tool is easier.
 
 ## Future Features
-- Support for API versioning is planned in the near future
 - Support for other databases is not planned right now
 - Support for other frameworks is not planned right now
