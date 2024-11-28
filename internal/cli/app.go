@@ -52,6 +52,20 @@ func NewPackageTemplate(packageName string, root string) error {
     return template.initializeDirectory("")
 }
 
+//go:embed _templates/templ/*
+var templFilesystem embed.FS
+func NewTemplTemplate(root string) error {
+    template := Template {
+        Root: root,
+        TemplateName: "templ",
+        Replacements: map[string]string{},
+        Filesystem: templFilesystem,
+    }
+
+    template.Replacements["$appRepo"] = template.getGoModuleName()
+    return template.initializeDirectory("")
+}
+
 func (app Template) initializeDirectory(directory string) error {
     replacedDirectory := utils.ReplaceAllInString(directory, app.Replacements)
     utils.UpsertFolder(path.Join(app.Root, replacedDirectory))

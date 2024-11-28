@@ -4,6 +4,7 @@ import (
     "net/http"
 
 	"$appRepo/internal/core"
+    "$appRepo/cmd/http/routes"
 )
 
 func main() {
@@ -13,6 +14,6 @@ func main() {
         Cache: core.ConnectCache(core.GetDefaultCacheServer()),
     }
 
-    BuildRoutes(router)
+    routes.BuildRoutes(router)
     router.Serve()
 }
