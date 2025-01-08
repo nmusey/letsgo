@@ -2,6 +2,7 @@ package cli
 
 import (
 	"embed"
+	"fmt"
 	"os"
 	"path"
 
@@ -21,6 +22,14 @@ type Template struct {
 //go:embed _templates/app/*
 var appFilesystem embed.FS
 func NewAppTemplate(name string, repo string, root string) error {
+    if name == "" {
+        return fmt.Errorf("No app name provided")
+    }
+
+    if repo == "" {
+        return fmt.Errorf("No app repository name provided")
+    }
+
 	template := Template{
         Root: path.Join(root, name),
         TemplateName: "app",
