@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/nmusey/letsgo/internal/cli"
+	"fmt"
 )
 
 func main() {
-	cli.RunCli()
+	fmt.Println("Hello world")
 }
