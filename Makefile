@@ -12,7 +12,7 @@ release: build
 	@echo "TODO for V2: GH action with release"		
 
 # Run a fresh binary
-run: build
+run: release
 	@./build/bin/letsgo
 
 # Run unit tests on the CLI and the test application
