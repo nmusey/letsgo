@@ -7,6 +7,10 @@ build:
 	@chmod +x ./build/bin/letsgo
 	@echo "letsgo built in ./build/bin"
 
+# Creates a release of the built application
+release: build
+	@echo "TODO for V2: GH action with release"		
+
 # Run a fresh binary
 run: build
 	@./build/bin/letsgo
