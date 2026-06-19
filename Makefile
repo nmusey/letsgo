@@ -22,6 +22,7 @@ test: build
 # Clean up the build artifacts
 clean:
 	@rm -rf ./build
+	@rm -rf ./test
 
 # Install the binary to the gopath
 install: build
