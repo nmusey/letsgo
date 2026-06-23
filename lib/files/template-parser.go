@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"strings"
 )
 
 type TemplateParser struct {
@@ -26,17 +27,19 @@ func (t TemplateParser) ParseFiles() error {
 			return nil
 		}
 
-		file, err := os.Create(entryPath)
+		outpath, templateFileFound := strings.CutSuffix(entryPath, ".template")
+		file, err := os.Create(outpath)
 		if err != nil {
 			return err
 		}
 
 		defer file.Close()
 
-		outpath := entryPath
-		err = t.SubstituteFile(outpath, file)
-
-		return err
+		if templateFileFound {
+			return t.SubstituteFile(entryPath, file)
+		} 
+		
+		return t.CopyFile(entryPath, file)
 	})
 }
 
@@ -57,4 +60,16 @@ func (t TemplateParser) SubstituteFile(filename string, writer io.Writer) error 
 	}
 
 	return nil
+}
+
+func (t TemplateParser) CopyFile(filename string, writer io.Writer) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+	_, err = io.Copy(writer, file)
+
+	return err
 }
