@@ -36,9 +36,6 @@ func NewTestTemplate(text string) *files.TemplateParser {
 //go:embed all:generators
 var generatorsFilesystem embed.FS
 
-// GeneratorsFilesystem returns the embedded filesystem containing the
-// per-file domain generator templates (model, repository, service),
-// addressable as "generators/<file>".
 func GeneratorsFilesystem() embed.FS {
 	return generatorsFilesystem
 }
