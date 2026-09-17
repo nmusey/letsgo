@@ -1,0 +1,17 @@
+package main
+
+import (
+	"log"
+
+	"{{ .AppName }}/lib/database"
+)
+
+func main() {
+	db, err := database.NewDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	log.Println("Connected to database")
+}
