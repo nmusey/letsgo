@@ -32,3 +32,10 @@ func NewTestTemplate(text string) *files.TemplateParser {
 		},
 	}
 }
+
+//go:embed all:generators
+var generatorsFilesystem embed.FS
+
+func GeneratorsFilesystem() embed.FS {
+	return generatorsFilesystem
+}

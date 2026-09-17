@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -72,4 +73,28 @@ func (t TemplateParser) CopyFile(filename string, writer io.Writer) error {
 	_, err = io.Copy(writer, file)
 
 	return err
+}
+
+func RenderTemplate(fsys fs.FS, templatePath, outPath string, substitutions map[string]string) error {
+	contents, err := fs.ReadFile(fsys, templatePath)
+	if err != nil {
+		return err
+	}
+
+	tmpl, err := template.New(templatePath).Parse(string(contents))
+	if err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(filepath.Dir(outPath), 0777); err != nil {
+		return err
+	}
+
+	file, err := os.OpenFile(outPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0666)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	return tmpl.Execute(file, substitutions)
 }
