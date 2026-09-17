@@ -1,0 +1,7 @@
+package {{.Package}}
+
+import "{{.ModuleName}}/lib/database"
+
+type {{.Struct}} struct {
+	database.Model
+}

@@ -1,0 +1,13 @@
+package {{.Package}}
+
+import (
+	"github.com/uptrace/bun"
+
+	"{{.ModuleName}}/lib/database"
+)
+
+type Repository = database.Repository[{{.Struct}}]
+
+func NewRepository(db *bun.DB) *Repository {
+	return database.NewRepository[{{.Struct}}](db)
+}
