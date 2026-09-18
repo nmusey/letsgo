@@ -12,7 +12,7 @@ release: build
 	@echo "TODO for V2: GH action with release"		
 
 # Make a test project in the current directory
-project: build
+project: clean build
 	@./build/bin/letsgo make project test-proj repo-path
 
 # Run unit tests on the CLI and the test application
