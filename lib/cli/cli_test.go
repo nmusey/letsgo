@@ -10,18 +10,22 @@ import (
 	"github.com/nmusey/letsgo/lib/cli"
 )
 
-func TestMakeModel_WithCompanionFlags_GeneratesAllThree(t *testing.T) {
+func TestMakeModel_WithCompanionFlags_GeneratesAllFour(t *testing.T) {
 	dir := t.TempDir()
 	writeGoMod(t, dir, "github.com/nmusey/myapp")
 	t.Chdir(dir)
 
 	cmd := cli.MakeCommands()
-	if err := cmd.Run(context.Background(), []string{"letsgo", "make", "model", "User", "-r", "-s"}); err != nil {
+	if err := cmd.Run(context.Background(), []string{"letsgo", "make", "model", "User", "-s", "-a", "-r"}); err != nil {
 		t.Fatalf("Run returned error: %v", err)
 	}
 
-	for _, file := range []string{"model.go", "repository.go", "service.go"} {
-		path := filepath.Join(dir, "lib", "user", file)
+	for _, path := range []string{
+		filepath.Join(dir, "lib", "domain", "user", "model.go"),
+		filepath.Join(dir, "lib", "domain", "user", "service.go"),
+		filepath.Join(dir, "lib", "application", "user", "userservice.go"),
+		filepath.Join(dir, "lib", "infrastructure", "database", "user", "repository.go"),
+	} {
 		if _, err := os.Stat(path); err != nil {
 			t.Errorf("expected %s to be created: %v", path, err)
 		}
@@ -38,15 +42,35 @@ func TestMakeRepository_WithServiceFlag_DoesNotGenerateModel(t *testing.T) {
 		t.Fatalf("Run returned error: %v", err)
 	}
 
-	domainDir := filepath.Join(dir, "lib", "post")
-	if _, err := os.Stat(filepath.Join(domainDir, "repository.go")); err != nil {
+	if _, err := os.Stat(filepath.Join(dir, "lib", "infrastructure", "database", "post", "repository.go")); err != nil {
 		t.Errorf("expected repository.go to be created: %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(domainDir, "service.go")); err != nil {
+	if _, err := os.Stat(filepath.Join(dir, "lib", "domain", "post", "service.go")); err != nil {
 		t.Errorf("expected service.go to be created: %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(domainDir, "model.go")); err == nil {
+	if _, err := os.Stat(filepath.Join(dir, "lib", "domain", "post", "model.go")); err == nil {
 		t.Error("model.go should not have been created")
+	}
+	if _, err := os.Stat(filepath.Join(dir, "lib", "application", "post", "postservice.go")); err == nil {
+		t.Error("postservice.go should not have been created")
+	}
+}
+
+func TestMakeAppService_WithModelFlag_GeneratesBoth(t *testing.T) {
+	dir := t.TempDir()
+	writeGoMod(t, dir, "github.com/nmusey/myapp")
+	t.Chdir(dir)
+
+	cmd := cli.MakeCommands()
+	if err := cmd.Run(context.Background(), []string{"letsgo", "make", "app-service", "Order", "-m"}); err != nil {
+		t.Fatalf("Run returned error: %v", err)
+	}
+
+	if _, err := os.Stat(filepath.Join(dir, "lib", "application", "order", "orderservice.go")); err != nil {
+		t.Errorf("expected orderservice.go to be created: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "lib", "domain", "order", "model.go")); err != nil {
+		t.Errorf("expected model.go to be created: %v", err)
 	}
 }
 

@@ -11,8 +11,9 @@ func TestGeneratorsFilesystem_ContainsGeneratorTemplates(t *testing.T) {
 
 	for _, path := range []string{
 		"generators/model.go.template",
-		"generators/repository.go.template",
 		"generators/service.go.template",
+		"generators/appservice.go.template",
+		"generators/repository.go.template",
 	} {
 		contents, err := fsys.ReadFile(path)
 		if err != nil {

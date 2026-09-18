@@ -15,35 +15,51 @@ func TestRun_WritesRequestedKinds(t *testing.T) {
 	dir := t.TempDir()
 	writeGoMod(t, dir, "github.com/nmusey/myapp")
 
-	err := generate.Run(dir, []string{"model", "repository", "service"}, "BlogPost")
+	err := generate.Run(dir, []string{"model", "service", "app-service", "repository"}, "BlogPost")
 	if err != nil {
 		t.Fatalf("Run returned error: %v", err)
 	}
 
-	domainDir := filepath.Join(dir, "lib", "blogpost")
-
-	modelContents := readFile(t, filepath.Join(domainDir, "model.go"))
+	modelPath := filepath.Join(dir, "lib", "domain", "blogpost", "model.go")
+	modelContents := readFile(t, modelPath)
 	if !strings.Contains(modelContents, "package blogpost") || !strings.Contains(modelContents, "type BlogPost struct") {
 		t.Errorf("model.go = %q, missing expected package/struct", modelContents)
 	}
-	if !strings.Contains(modelContents, "github.com/nmusey/myapp/lib/database") {
-		t.Errorf("model.go = %q, missing module import", modelContents)
+	if strings.Contains(modelContents, "bun") {
+		t.Errorf("model.go = %q, should not reference bun", modelContents)
 	}
 
-	repositoryContents := readFile(t, filepath.Join(domainDir, "repository.go"))
-	if !strings.Contains(repositoryContents, "database.Repository[BlogPost]") {
-		t.Errorf("repository.go = %q, missing generic repository alias", repositoryContents)
+	domainServicePath := filepath.Join(dir, "lib", "domain", "blogpost", "service.go")
+	domainServiceContents := readFile(t, domainServicePath)
+	if !strings.Contains(domainServiceContents, "package blogpost") || !strings.Contains(domainServiceContents, "type Service struct") {
+		t.Errorf("domain service.go = %q, missing expected package/struct", domainServiceContents)
+	}
+	if strings.Contains(domainServiceContents, "Repository") {
+		t.Errorf("domain service.go = %q, should not reference a repository", domainServiceContents)
 	}
 
-	serviceContents := readFile(t, filepath.Join(domainDir, "service.go"))
-	if !strings.Contains(serviceContents, "package blogpost") || !strings.Contains(serviceContents, "type Service struct") {
-		t.Errorf("service.go = %q, missing expected package/struct", serviceContents)
+	appServicePath := filepath.Join(dir, "lib", "application", "blogpost", "blogpostservice.go")
+	appServiceContents := readFile(t, appServicePath)
+	if !strings.Contains(appServiceContents, "package blogpost") || !strings.Contains(appServiceContents, "type Repository interface") {
+		t.Errorf("appservice.go = %q, missing expected package/interface", appServiceContents)
+	}
+	if !strings.Contains(appServiceContents, "github.com/nmusey/myapp/lib/domain/blogpost") {
+		t.Errorf("appservice.go = %q, missing domain import", appServiceContents)
 	}
 
-	for _, file := range []string{"model.go", "repository.go", "service.go"} {
+	repositoryPath := filepath.Join(dir, "lib", "infrastructure", "database", "blogpost", "repository.go")
+	repositoryContents := readFile(t, repositoryPath)
+	if !strings.Contains(repositoryContents, "database.Repository[SavedBlogPost]") {
+		t.Errorf("repository.go = %q, missing generic repository engine", repositoryContents)
+	}
+	if !strings.Contains(repositoryContents, "github.com/nmusey/myapp/lib/domain/blogpost") {
+		t.Errorf("repository.go = %q, missing domain import", repositoryContents)
+	}
+
+	for _, path := range []string{modelPath, domainServicePath, appServicePath, repositoryPath} {
 		fset := token.NewFileSet()
-		if _, err := parser.ParseFile(fset, filepath.Join(domainDir, file), nil, 0); err != nil {
-			t.Errorf("%s is not syntactically valid Go: %v", file, err)
+		if _, err := parser.ParseFile(fset, path, nil, 0); err != nil {
+			t.Errorf("%s is not syntactically valid Go: %v", path, err)
 		}
 	}
 }
@@ -52,7 +68,7 @@ func TestRun_CollisionSkipsOnlyThatFileAndReturnsError(t *testing.T) {
 	dir := t.TempDir()
 	writeGoMod(t, dir, "github.com/nmusey/myapp")
 
-	domainDir := filepath.Join(dir, "lib", "user")
+	domainDir := filepath.Join(dir, "lib", "domain", "user")
 	if err := os.MkdirAll(domainDir, 0777); err != nil {
 		t.Fatalf("seeding domain dir: %v", err)
 	}
@@ -60,7 +76,7 @@ func TestRun_CollisionSkipsOnlyThatFileAndReturnsError(t *testing.T) {
 		t.Fatalf("seeding existing model.go: %v", err)
 	}
 
-	err := generate.Run(dir, []string{"model", "repository"}, "User")
+	err := generate.Run(dir, []string{"model", "service"}, "User")
 	if err == nil {
 		t.Fatal("expected an error from the model.go collision, got nil")
 	}
@@ -69,8 +85,8 @@ func TestRun_CollisionSkipsOnlyThatFileAndReturnsError(t *testing.T) {
 		t.Errorf("existing model.go was overwritten: got %q", got)
 	}
 
-	if _, err := os.Stat(filepath.Join(domainDir, "repository.go")); err != nil {
-		t.Errorf("repository.go was not written despite model.go's collision: %v", err)
+	if _, err := os.Stat(filepath.Join(domainDir, "service.go")); err != nil {
+		t.Errorf("service.go was not written despite model.go's collision: %v", err)
 	}
 }
 

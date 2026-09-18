@@ -1,0 +1,23 @@
+package {{.Package}}
+
+import (
+	"context"
+
+	"{{.ModuleName}}/lib/domain/{{.Package}}"
+)
+
+type Repository interface {
+	Get(ctx context.Context, id int64) (*{{.Package}}.{{.Struct}}, error)
+	List(ctx context.Context) ([]{{.Package}}.{{.Struct}}, error)
+	Create(ctx context.Context, model *{{.Package}}.{{.Struct}}) error
+	Update(ctx context.Context, model *{{.Package}}.{{.Struct}}) error
+	Delete(ctx context.Context, model *{{.Package}}.{{.Struct}}) error
+}
+
+type Service struct {
+	repository Repository
+}
+
+func NewService(repository Repository) *Service {
+	return &Service{repository: repository}
+}

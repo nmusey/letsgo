@@ -17,7 +17,6 @@ func Run(dir string, kindNames []string, rawName string) error {
 	}
 
 	name := NewName(rawName)
-	outDir := filepath.Join(dir, "lib", name.Package)
 
 	substitutions := map[string]string{
 		"Struct":     name.Struct,
@@ -35,7 +34,8 @@ func Run(dir string, kindNames []string, rawName string) error {
 		}
 
 		templatePath := path.Join("generators", kind.TemplateFile)
-		outPath := filepath.Join(outDir, kind.OutputFile)
+		relOutPath := strings.ReplaceAll(kind.OutputPath, "{{.Package}}", name.Package)
+		outPath := filepath.Join(dir, filepath.FromSlash(relOutPath))
 
 		if err := files.RenderTemplate(generatorsFS, templatePath, outPath, substitutions); err != nil {
 			failures = append(failures, fmt.Sprintf("%s: %v", outPath, err))

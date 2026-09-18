@@ -12,8 +12,8 @@ func TestKindByName_Found(t *testing.T) {
 		t.Fatal(`KindByName("repository") ok = false, want true`)
 	}
 
-	if kind.OutputFile != "repository.go" {
-		t.Errorf("kind.OutputFile = %q, want %q", kind.OutputFile, "repository.go")
+	if kind.OutputPath != "lib/infrastructure/database/{{.Package}}/repository.go" {
+		t.Errorf("kind.OutputPath = %q, want %q", kind.OutputPath, "lib/infrastructure/database/{{.Package}}/repository.go")
 	}
 	if kind.FlagShort != "r" {
 		t.Errorf("kind.FlagShort = %q, want %q", kind.FlagShort, "r")
@@ -26,13 +26,13 @@ func TestKindByName_NotFound(t *testing.T) {
 	}
 }
 
-func TestKinds_ContainsModelRepositoryServiceInOrder(t *testing.T) {
+func TestKinds_ContainsModelServiceAppServiceRepositoryInOrder(t *testing.T) {
 	var names []string
 	for _, kind := range generate.Kinds {
 		names = append(names, kind.Name)
 	}
 
-	want := []string{"model", "repository", "service"}
+	want := []string{"model", "service", "app-service", "repository"}
 	if len(names) != len(want) {
 		t.Fatalf("generate.Kinds has %d entries, want %d", len(names), len(want))
 	}
