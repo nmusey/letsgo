@@ -9,26 +9,14 @@ import (
 //go:embed all:project
 var projectFilesystem embed.FS
 
-func NewProjectTemplate(name string) *files.TemplateParser {
+func NewProjectTemplate(name string, repository string) *files.TemplateParser {
 	return &files.TemplateParser{
-		Path:       name,
-		Filesystem: projectFilesystem,
+		Path: name,
+		Filesystem:     projectFilesystem,
+		FilesystemRoot: "project",
 		Substitutions: map[string]string{
 			"AppName": name,
-		},
-	}
-}
-
-//go:embed all:test
-var testFilesystem embed.FS
-
-// Template for internal testing only
-func NewTestTemplate(text string) *files.TemplateParser {
-	return &files.TemplateParser{
-		Path: "test",
-		Filesystem: testFilesystem,
-		Substitutions: map[string]string{
-			"Test": text,
+			"AppRepo": repository,
 		},
 	}
 }

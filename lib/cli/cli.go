@@ -15,8 +15,18 @@ func MakeCommands() *cli.Command {
 		{
 			Name:  "project",
 			Usage: "Scaffold a go project quickly",
-			Action: func(context.Context, *cli.Command) error {
-				template := templates.NewTestTemplate("substitution")
+			Action: func(ctx context.Context, cmd *cli.Command) error {
+				name := cmd.Args().Get(0)
+				if name == "" {
+					return fmt.Errorf("Name is required for a project. See help for more details.")
+				}
+
+				repository := cmd.Args().Get(1)
+				if repository == "" {
+					return fmt.Errorf("Name is required for a project. See help for more details.")
+				}
+
+				template := templates.NewProjectTemplate(name, repository)
 				return template.ParseFiles()
 			},
 		},

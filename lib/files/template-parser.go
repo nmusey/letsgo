@@ -12,35 +12,34 @@ import (
 
 type TemplateParser struct {
 	Path       string
+
 	Filesystem embed.FS
+	FilesystemRoot string
 
 	Substitutions map[string]string
 }
 
 func (t TemplateParser) ParseFiles() error {
-	return fs.WalkDir(t.Filesystem, ".", func(entryPath string, entry fs.DirEntry, err error) error {
+	os.Mkdir(t.Path, 0755)
+
+	return fs.WalkDir(t.Filesystem, t.FilesystemRoot, func(entryPath string, entry fs.DirEntry, err error) error {
 		if entry == nil {
 			return nil
 		}
 
+		outpath := t.transformToOutputPath(entryPath)
 		if entry.IsDir() {
-			os.Mkdir(entryPath, 0777)
+			os.Mkdir(outpath, 0777) // TODO - can this be 0755?
 			return nil
 		}
 
-		outpath, templateFileFound := strings.CutSuffix(entryPath, ".template")
 		file, err := os.Create(outpath)
 		if err != nil {
 			return err
 		}
 
 		defer file.Close()
-
-		if templateFileFound {
-			return t.SubstituteFile(entryPath, file)
-		} 
-		
-		return t.CopyFile(entryPath, file)
+		return t.SubstituteFile(entryPath, file)
 	})
 }
 
@@ -63,18 +62,7 @@ func (t TemplateParser) SubstituteFile(filename string, writer io.Writer) error 
 	return nil
 }
 
-func (t TemplateParser) CopyFile(filename string, writer io.Writer) error {
-	file, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
-
-	defer file.Close()
-	_, err = io.Copy(writer, file)
-
-	return err
-}
-
+// TODO - clean up the logic here and in calling locations
 func RenderTemplate(fsys fs.FS, templatePath, outPath string, substitutions map[string]string) error {
 	contents, err := fs.ReadFile(fsys, templatePath)
 	if err != nil {
@@ -97,4 +85,10 @@ func RenderTemplate(fsys fs.FS, templatePath, outPath string, substitutions map[
 	defer file.Close()
 
 	return tmpl.Execute(file, substitutions)
+}
+
+// TODO - function documentation pass https://go.dev/doc/comment
+func (t TemplateParser) transformToOutputPath(entryPath string) string {
+		outpath := strings.Replace(entryPath, t.FilesystemRoot, t.Path, 1)
+		return strings.TrimSuffix(outpath, ".template")
 }
