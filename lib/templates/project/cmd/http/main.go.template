@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"{{ .AppName }}/lib/database"
+	"{{ .AppName }}/lib/infrastructure/database"
 )
 
 func main() {

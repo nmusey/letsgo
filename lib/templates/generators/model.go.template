@@ -1,7 +1,14 @@
 package {{.Package}}
 
-import "{{.ModuleName}}/lib/database"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type {{.Struct}} struct {
-	database.Model
+	ID        int64
+	UUID      uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }

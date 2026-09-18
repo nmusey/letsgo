@@ -1,9 +1,8 @@
 package {{.Package}}
 
 type Service struct {
-	repository *Repository
 }
 
-func NewService(repository *Repository) *Service {
-	return &Service{repository: repository}
+func NewService() *Service {
+	return &Service{}
 }
