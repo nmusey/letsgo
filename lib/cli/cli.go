@@ -2,10 +2,8 @@ package cli
 
 import (
 	"context"
-	"fmt"
-	"os"
+	"path"
 
-	"github.com/nmusey/letsgo/lib/generate"
 	"github.com/nmusey/letsgo/lib/templates"
 	"github.com/urfave/cli/v3"
 )
@@ -15,23 +13,52 @@ func MakeCommands() *cli.Command {
 		{
 			Name:  "project",
 			Usage: "Scaffold a go project quickly",
+			Arguments: []cli.Argument{
+				&cli.StringArg{
+					Name:      "name",
+					Required:  true,
+				},
+				&cli.StringArg{
+					Name:      "repository",
+					Required:  true,
+				},
+			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
-				name := cmd.Args().Get(0)
-				if name == "" {
-					return fmt.Errorf("Name is required for a project. See help for more details.")
-				}
-
-				repository := cmd.Args().Get(1)
-				if repository == "" {
-					return fmt.Errorf("Name is required for a project. See help for more details.")
-				}
-
+				name := cmd.StringArg("name")
+				repository := cmd.StringArg("repository")
 				template := templates.NewProjectTemplate(name, repository)
-				return template.ParseFiles()
+				return template.ParseFiles(name)
+			},
+		},
+		{
+			Name:  "model",
+			Usage: "Add a domain model to the project. Includes a repository and service alongside the model struct itself.",
+			Arguments: []cli.Argument{
+				&cli.StringArg{
+					Name:      "name",
+					Required:  true,
+				},
+			},
+			Action: func(ctx context.Context, cmd *cli.Command) error {
+				name := cmd.StringArg("name")
+				return templates.NewModelTemplate(name).ParseFiles(path.Join("lib", "domain", name))
+			},
+		},
+		{
+			Name:  "app-service",
+			Usage: "Add an app service to the project.",
+			Arguments: []cli.Argument{
+				&cli.StringArg{
+					Name:      "name",
+					Required:  true,
+				},
+			},
+			Action: func(ctx context.Context, cmd *cli.Command) error {
+				name := cmd.StringArg("name")
+				return templates.NewAppServiceTemplate(name).ParseFiles(path.Join("lib", "domain", name))
 			},
 		},
 	}
-	makeCommands = append(makeCommands, generatorCommands()...)
 
 	return &cli.Command{
 		Commands: []*cli.Command{
@@ -40,60 +67,6 @@ func MakeCommands() *cli.Command {
 				Aliases:  []string{"m"},
 				Commands: makeCommands,
 			},
-		},
-	}
-}
-
-func generatorCommands() []*cli.Command {
-	commands := make([]*cli.Command, 0, len(generate.Kinds))
-
-	for _, kind := range generate.Kinds {
-		commands = append(commands, generatorCommand(kind))
-	}
-
-	return commands
-}
-
-func generatorCommand(kind generate.Kind) *cli.Command {
-	var companions []generate.Kind
-	for _, other := range generate.Kinds {
-		if other.Name != kind.Name {
-			companions = append(companions, other)
-		}
-	}
-
-	flags := make([]cli.Flag, 0, len(companions))
-	for _, companion := range companions {
-		flags = append(flags, &cli.BoolFlag{
-			Name:    companion.FlagLong,
-			Aliases: []string{companion.FlagShort},
-			Usage:   fmt.Sprintf("Also generate a %s", companion.Name),
-		})
-	}
-
-	return &cli.Command{
-		Name:  kind.Name,
-		Usage: fmt.Sprintf("Generate a %s for a domain", kind.Name),
-		Flags: flags,
-		Action: func(_ context.Context, cmd *cli.Command) error {
-			rawName := cmd.Args().First()
-			if rawName == "" {
-				return fmt.Errorf("make %s: a domain name is required", kind.Name)
-			}
-
-			kindNames := []string{kind.Name}
-			for _, companion := range companions {
-				if cmd.Bool(companion.FlagLong) {
-					kindNames = append(kindNames, companion.Name)
-				}
-			}
-
-			dir, err := os.Getwd()
-			if err != nil {
-				return err
-			}
-
-			return generate.Run(dir, kindNames, rawName)
 		},
 	}
 }
