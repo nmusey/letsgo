@@ -3,7 +3,7 @@ package {{.Package}}
 import (
 	"context"
 
-	"{{.ModuleName}}/lib/domain/{{.Package}}"
+	"{{.AppRepo}}/lib/domain/{{.Package}}"
 )
 
 type Repository interface {

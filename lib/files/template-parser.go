@@ -2,34 +2,34 @@ package files
 
 import (
 	"embed"
-	"html/template"
 	"io"
 	"io/fs"
 	"os"
-	"path/filepath"
 	"strings"
+	"text/template"
 )
 
+// Holds information needed to parse templates
 type TemplateParser struct {
-	Path       string
-
-	Filesystem embed.FS
+	Filesystem     embed.FS
 	FilesystemRoot string
+	OutputPath     *string
 
 	Substitutions map[string]string
 }
 
-func (t TemplateParser) ParseFiles() error {
-	os.Mkdir(t.Path, 0755)
+// Parse the files in a given template to a new directory with given name
+func (t TemplateParser) ParseFiles(dirname string) error {
+	os.MkdirAll(dirname, 0755)
 
 	return fs.WalkDir(t.Filesystem, t.FilesystemRoot, func(entryPath string, entry fs.DirEntry, err error) error {
 		if entry == nil {
 			return nil
 		}
 
-		outpath := t.transformToOutputPath(entryPath)
+		outpath := t.getOutpath(entryPath, dirname)
 		if entry.IsDir() {
-			os.Mkdir(outpath, 0777) // TODO - can this be 0755?
+			os.Mkdir(outpath, 0755)
 			return nil
 		}
 
@@ -43,7 +43,9 @@ func (t TemplateParser) ParseFiles() error {
 	})
 }
 
+// Reads a file and substitute and variables in the parser
 func (t TemplateParser) SubstituteFile(filename string, writer io.Writer) error {
+	// The entire file is read at once, template files are relatively small so this isn't an issue.
 	contents, err := fs.ReadFile(t.Filesystem, filename)
 	if err != nil {
 		return err
@@ -62,33 +64,11 @@ func (t TemplateParser) SubstituteFile(filename string, writer io.Writer) error 
 	return nil
 }
 
-// TODO - clean up the logic here and in calling locations
-func RenderTemplate(fsys fs.FS, templatePath, outPath string, substitutions map[string]string) error {
-	contents, err := fs.ReadFile(fsys, templatePath)
-	if err != nil {
-		return err
-	}
+// Turn a path from the read filesystem to the write location.
+func (t TemplateParser) getOutpath(entryPath string, outputDir string) string {
+		outpath := entryPath
+		outpath = strings.Replace(outpath, t.FilesystemRoot, outputDir, 1)
+		outpath = strings.TrimSuffix(outpath, ".template")
 
-	tmpl, err := template.New(templatePath).Parse(string(contents))
-	if err != nil {
-		return err
-	}
-
-	if err := os.MkdirAll(filepath.Dir(outPath), 0777); err != nil {
-		return err
-	}
-
-	file, err := os.OpenFile(outPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0666)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	return tmpl.Execute(file, substitutions)
-}
-
-// TODO - function documentation pass https://go.dev/doc/comment
-func (t TemplateParser) transformToOutputPath(entryPath string) string {
-		outpath := strings.Replace(entryPath, t.FilesystemRoot, t.Path, 1)
-		return strings.TrimSuffix(outpath, ".template")
+		return outpath
 }

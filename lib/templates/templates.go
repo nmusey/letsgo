@@ -11,7 +11,6 @@ var projectFilesystem embed.FS
 
 func NewProjectTemplate(name string, repository string) *files.TemplateParser {
 	return &files.TemplateParser{
-		Path: name,
 		Filesystem:     projectFilesystem,
 		FilesystemRoot: "project",
 		Substitutions: map[string]string{
@@ -21,9 +20,33 @@ func NewProjectTemplate(name string, repository string) *files.TemplateParser {
 	}
 }
 
-//go:embed all:generators
-var generatorsFilesystem embed.FS
+//go:embed all:model
+var modelFilesystem embed.FS
 
-func GeneratorsFilesystem() embed.FS {
-	return generatorsFilesystem
+func NewModelTemplate(name string) *files.TemplateParser {
+	return &files.TemplateParser{
+		Filesystem:     modelFilesystem,
+		FilesystemRoot: "model",
+		Substitutions: map[string]string{
+			"Package": "", // TODO
+			"Struct":  "", // TODO
+			"AppName": "", // TODO
+			"AppRepo": "", // TODO
+		},
+	}
+}
+
+//go:embed all:appservice
+var appserviceFilesystem embed.FS
+
+func NewAppServiceTemplate(name string) *files.TemplateParser {
+	return &files.TemplateParser{
+		Filesystem:     appserviceFilesystem,
+		FilesystemRoot: "appservice",
+		Substitutions: map[string]string{
+			"ServiceName": name,
+			"AppName":     "", // TODO
+			"AppRepo":     "", // TODO
+		},
+	}
 }

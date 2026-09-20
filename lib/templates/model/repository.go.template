@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 
-	"{{.ModuleName}}/lib/domain/{{.Package}}"
 	"{{.ModuleName}}/lib/infrastructure/database"
 )
 
