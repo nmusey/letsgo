@@ -13,7 +13,7 @@ import (
 type Saved{{.Struct}} struct {
 	bun.BaseModel `bun:"table:{{.Package}}"`
 
-	{{.Package}}.{{.Struct}}
+	{{.Struct}}
 
 	ID        int64     `bun:",pk,autoincrement"`
 	UUID      uuid.UUID `bun:"type:uuid,unique,notnull"`
@@ -50,7 +50,7 @@ func New(db *bun.DB) *Repository {
 	return &Repository{engine: database.NewRepository[Saved{{.Struct}}](db)}
 }
 
-func (r *Repository) Get(ctx context.Context, id int64) (*{{.Package}}.{{.Struct}}, error) {
+func (r *Repository) Get(ctx context.Context, id int64) (*{{.Struct}}, error) {
 	saved, err := r.engine.Get(ctx, id)
 	if err != nil {
 		return nil, err
@@ -59,13 +59,13 @@ func (r *Repository) Get(ctx context.Context, id int64) (*{{.Package}}.{{.Struct
 	return &saved.{{.Struct}}, nil
 }
 
-func (r *Repository) List(ctx context.Context) ([]{{.Package}}.{{.Struct}}, error) {
+func (r *Repository) List(ctx context.Context) ([]{{.Struct}}, error) {
 	saved, err := r.engine.List(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	models := make([]{{.Package}}.{{.Struct}}, len(saved))
+	models := make([]{{.Struct}}, len(saved))
 	for i := range saved {
 		models[i] = saved[i].{{.Struct}}
 	}
@@ -73,7 +73,7 @@ func (r *Repository) List(ctx context.Context) ([]{{.Package}}.{{.Struct}}, erro
 	return models, nil
 }
 
-func (r *Repository) Create(ctx context.Context, model *{{.Package}}.{{.Struct}}) error {
+func (r *Repository) Create(ctx context.Context, model *{{.Struct}}) error {
 	saved := &Saved{{.Struct}}{ {{.Struct}}: *model}
 	if err := r.engine.Create(ctx, saved); err != nil {
 		return err
@@ -83,7 +83,7 @@ func (r *Repository) Create(ctx context.Context, model *{{.Package}}.{{.Struct}}
 	return nil
 }
 
-func (r *Repository) Update(ctx context.Context, model *{{.Package}}.{{.Struct}}) error {
+func (r *Repository) Update(ctx context.Context, model *{{.Struct}}) error {
 	saved := &Saved{{.Struct}}{ {{.Struct}}: *model, ID: model.ID, UUID: model.UUID, CreatedAt: model.CreatedAt}
 	if err := r.engine.Update(ctx, saved); err != nil {
 		return err
@@ -93,6 +93,6 @@ func (r *Repository) Update(ctx context.Context, model *{{.Package}}.{{.Struct}}
 	return nil
 }
 
-func (r *Repository) Delete(ctx context.Context, model *{{.Package}}.{{.Struct}}) error {
+func (r *Repository) Delete(ctx context.Context, model *{{.Struct}}) error {
 	return r.engine.Delete(ctx, &Saved{{.Struct}}{ID: model.ID})
 }
