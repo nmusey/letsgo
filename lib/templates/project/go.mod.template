@@ -1,4 +1,4 @@
-module {{ .AppName }}
+module {{ .Module }}
 
 go 1.26.0
 

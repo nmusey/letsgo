@@ -11,9 +11,9 @@ build:
 release: build
 	@echo "TODO for V2: GH action with release"		
 
-# Run a fresh binary
-run: release
-	@./build/bin/letsgo
+# Make a test project in the current directory
+project: clean build
+	@./build/bin/letsgo make project test-proj repo/module
 
 # Run unit tests on the CLI and the test application
 test: build
@@ -22,11 +22,11 @@ test: build
 # Clean up the build artifacts
 clean:
 	@rm -rf ./build
-	@rm -rf ./test
+	@rm -rf ./test-proj
 
 # Install the binary to the gopath
 install: build
 	@cp ./build/bin/letsgo $(GOPATH)/bin/letsgo
-	@echo "letsgo installed. Run letsgo make something-cool github.com/youruser/something-cool"
+	@echo "letsgo installed. Run letsgo make something-cool git-host.com/youruser/something-cool"
 
-.PHONY: build run-test build-test test clean install
+.PHONY: build project test clean install

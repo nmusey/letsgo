@@ -7,14 +7,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 
-	"{{.ModuleName}}/lib/domain/{{.Package}}"
-	"{{.ModuleName}}/lib/infrastructure/database"
+	"{{.Module}}/lib/infrastructure/database"
 )
 
 type Saved{{.Struct}} struct {
 	bun.BaseModel `bun:"table:{{.Package}}"`
 
-	{{.Package}}.{{.Struct}}
+	{{.Struct}}
 
 	ID        int64     `bun:",pk,autoincrement"`
 	UUID      uuid.UUID `bun:"type:uuid,unique,notnull"`
@@ -43,38 +42,46 @@ func (m *Saved{{.Struct}}) BeforeAppendModel(ctx context.Context, query bun.Quer
 	return nil
 }
 
+// The stored columns live on the wrapper, so copy them onto the embedded model before handing it out.
+func (m *Saved{{.Struct}}) toModel() {{.Struct}} {
+	model := m.{{.Struct}}
+	model.ID, model.UUID, model.CreatedAt, model.UpdatedAt = m.ID, m.UUID, m.CreatedAt, m.UpdatedAt
+	return model
+}
+
 type Repository struct {
 	engine *database.Repository[Saved{{.Struct}}]
 }
 
-func NewRepository(db *bun.DB) *Repository {
+func New(db *bun.DB) *Repository {
 	return &Repository{engine: database.NewRepository[Saved{{.Struct}}](db)}
 }
 
-func (r *Repository) Get(ctx context.Context, id int64) (*{{.Package}}.{{.Struct}}, error) {
+func (r *Repository) Get(ctx context.Context, id int64) (*{{.Struct}}, error) {
 	saved, err := r.engine.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return &saved.{{.Struct}}, nil
+	model := saved.toModel()
+	return &model, nil
 }
 
-func (r *Repository) List(ctx context.Context) ([]{{.Package}}.{{.Struct}}, error) {
+func (r *Repository) List(ctx context.Context) ([]{{.Struct}}, error) {
 	saved, err := r.engine.List(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	models := make([]{{.Package}}.{{.Struct}}, len(saved))
+	models := make([]{{.Struct}}, len(saved))
 	for i := range saved {
-		models[i] = saved[i].{{.Struct}}
+		models[i] = saved[i].toModel()
 	}
 
 	return models, nil
 }
 
-func (r *Repository) Create(ctx context.Context, model *{{.Package}}.{{.Struct}}) error {
+func (r *Repository) Create(ctx context.Context, model *{{.Struct}}) error {
 	saved := &Saved{{.Struct}}{ {{.Struct}}: *model}
 	if err := r.engine.Create(ctx, saved); err != nil {
 		return err
@@ -84,7 +91,7 @@ func (r *Repository) Create(ctx context.Context, model *{{.Package}}.{{.Struct}}
 	return nil
 }
 
-func (r *Repository) Update(ctx context.Context, model *{{.Package}}.{{.Struct}}) error {
+func (r *Repository) Update(ctx context.Context, model *{{.Struct}}) error {
 	saved := &Saved{{.Struct}}{ {{.Struct}}: *model, ID: model.ID, UUID: model.UUID, CreatedAt: model.CreatedAt}
 	if err := r.engine.Update(ctx, saved); err != nil {
 		return err
@@ -94,6 +101,6 @@ func (r *Repository) Update(ctx context.Context, model *{{.Package}}.{{.Struct}}
 	return nil
 }
 
-func (r *Repository) Delete(ctx context.Context, model *{{.Package}}.{{.Struct}}) error {
+func (r *Repository) Delete(ctx context.Context, model *{{.Struct}}) error {
 	return r.engine.Delete(ctx, &Saved{{.Struct}}{ID: model.ID})
 }
