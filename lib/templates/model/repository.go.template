@@ -42,6 +42,13 @@ func (m *Saved{{.Struct}}) BeforeAppendModel(ctx context.Context, query bun.Quer
 	return nil
 }
 
+// The stored columns live on the wrapper, so copy them onto the embedded model before handing it out.
+func (m *Saved{{.Struct}}) toModel() {{.Struct}} {
+	model := m.{{.Struct}}
+	model.ID, model.UUID, model.CreatedAt, model.UpdatedAt = m.ID, m.UUID, m.CreatedAt, m.UpdatedAt
+	return model
+}
+
 type Repository struct {
 	engine *database.Repository[Saved{{.Struct}}]
 }
@@ -56,7 +63,8 @@ func (r *Repository) Get(ctx context.Context, id int64) (*{{.Struct}}, error) {
 		return nil, err
 	}
 
-	return &saved.{{.Struct}}, nil
+	model := saved.toModel()
+	return &model, nil
 }
 
 func (r *Repository) List(ctx context.Context) ([]{{.Struct}}, error) {
@@ -67,7 +75,7 @@ func (r *Repository) List(ctx context.Context) ([]{{.Struct}}, error) {
 
 	models := make([]{{.Struct}}, len(saved))
 	for i := range saved {
-		models[i] = saved[i].{{.Struct}}
+		models[i] = saved[i].toModel()
 	}
 
 	return models, nil

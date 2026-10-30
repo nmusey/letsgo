@@ -3,6 +3,6 @@ package {{.Package}}
 type Service struct {
 }
 
-func Service() *Service {
+func NewService() *Service {
 	return &Service{}
 }

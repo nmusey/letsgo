@@ -17,7 +17,7 @@ func NewProjectTemplate(name string, repository string, dbPort string) *files.Te
 		Substitutions: map[string]string{
 			"AppName": name,
 			"Module":  repository,
-			"DbPort": dbPort,
+			"DbPort":  dbPort,
 		},
 	}
 }
