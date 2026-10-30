@@ -75,7 +75,7 @@ func MakeCommands() *cli.Command {
 					return err
 				}
 
-				return template.ParseFiles(path.Join("lib", "domain", names.PackageName(name)))
+				return template.ParseFiles(path.Join("lib", "application", names.PackageName(name)))
 			},
 		},
 	}
