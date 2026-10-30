@@ -10,13 +10,14 @@ import (
 //go:embed all:project
 var projectFilesystem embed.FS
 
-func NewProjectTemplate(name string, repository string) *files.TemplateParser {
+func NewProjectTemplate(name string, repository string, dbPort string) *files.TemplateParser {
 	return &files.TemplateParser{
 		Filesystem:     projectFilesystem,
 		FilesystemRoot: "project",
 		Substitutions: map[string]string{
 			"AppName": name,
 			"Module":  repository,
+			"DbPort": dbPort,
 		},
 	}
 }

@@ -1,4 +1,4 @@
-package {{.Package}}Service
+package {{.Package}}
 
 import (
 	"context"

@@ -23,11 +23,20 @@ func MakeCommands() *cli.Command {
 					Name:     "repository",
 					Required: true,
 				},
+				&cli.StringArg{
+					Name: "dbPort",
+					Required: false,
+				},
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				name := cmd.StringArg("name")
 				repository := cmd.StringArg("repository")
-				template := templates.NewProjectTemplate(name, repository)
+				dbPort := cmd.StringArg("dbPort")
+				if dbPort == "" {
+					dbPort = "5432"
+				}
+
+				template := templates.NewProjectTemplate(name, repository, dbPort)
 				return template.ParseFiles(name)
 			},
 		},
