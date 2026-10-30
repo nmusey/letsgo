@@ -24,7 +24,7 @@ func MakeCommands() *cli.Command {
 					Required: true,
 				},
 				&cli.StringArg{
-					Name: "dbPort",
+					Name:     "dbPort",
 					Required: false,
 				},
 			},
