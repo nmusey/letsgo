@@ -66,9 +66,9 @@ func (t TemplateParser) SubstituteFile(filename string, writer io.Writer) error 
 
 // Turn a path from the read filesystem to the write location.
 func (t TemplateParser) getOutpath(entryPath string, outputDir string) string {
-		outpath := entryPath
-		outpath = strings.Replace(outpath, t.FilesystemRoot, outputDir, 1)
-		outpath = strings.TrimSuffix(outpath, ".template")
+	outpath := entryPath
+	outpath = strings.Replace(outpath, t.FilesystemRoot, outputDir, 1)
+	outpath = strings.TrimSuffix(outpath, ".template")
 
-		return outpath
+	return outpath
 }

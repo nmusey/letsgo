@@ -4,6 +4,7 @@ import (
 	"context"
 	"path"
 
+	"github.com/nmusey/letsgo/lib/names"
 	"github.com/nmusey/letsgo/lib/templates"
 	"github.com/urfave/cli/v3"
 )
@@ -15,12 +16,12 @@ func MakeCommands() *cli.Command {
 			Usage: "Scaffold a go project quickly",
 			Arguments: []cli.Argument{
 				&cli.StringArg{
-					Name:      "name",
-					Required:  true,
+					Name:     "name",
+					Required: true,
 				},
 				&cli.StringArg{
-					Name:      "repository",
-					Required:  true,
+					Name:     "repository",
+					Required: true,
 				},
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
@@ -35,13 +36,18 @@ func MakeCommands() *cli.Command {
 			Usage: "Add a domain model to the project. Includes a repository and service alongside the model struct itself.",
 			Arguments: []cli.Argument{
 				&cli.StringArg{
-					Name:      "name",
-					Required:  true,
+					Name:     "name",
+					Required: true,
 				},
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				name := cmd.StringArg("name")
-				return templates.NewModelTemplate(name).ParseFiles(path.Join("lib", "domain", name))
+				template, err := templates.NewModelTemplate(name)
+				if err != nil {
+					return err
+				}
+
+				return template.ParseFiles(path.Join("lib", "domain", names.PackageName(name)))
 			},
 		},
 		{
@@ -49,13 +55,18 @@ func MakeCommands() *cli.Command {
 			Usage: "Add an app service to the project.",
 			Arguments: []cli.Argument{
 				&cli.StringArg{
-					Name:      "name",
-					Required:  true,
+					Name:     "name",
+					Required: true,
 				},
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				name := cmd.StringArg("name")
-				return templates.NewAppServiceTemplate(name).ParseFiles(path.Join("lib", "domain", name))
+				template, err := templates.NewAppServiceTemplate(name)
+				if err != nil {
+					return err
+				}
+
+				return template.ParseFiles(path.Join("lib", "domain", names.PackageName(name)))
 			},
 		},
 	}

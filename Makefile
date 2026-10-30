@@ -13,7 +13,7 @@ release: build
 
 # Make a test project in the current directory
 project: clean build
-	@./build/bin/letsgo make project test-proj repo-path
+	@./build/bin/letsgo make project test-proj repo/module
 
 # Run unit tests on the CLI and the test application
 test: build
@@ -22,7 +22,7 @@ test: build
 # Clean up the build artifacts
 clean:
 	@rm -rf ./build
-	@rm -rf ./test
+	@rm -rf ./test-proj
 
 # Install the binary to the gopath
 install: build
