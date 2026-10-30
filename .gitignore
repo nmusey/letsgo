@@ -1,2 +1,3 @@
 build
-internal/cli/_templates
+tmp
+test-proj
