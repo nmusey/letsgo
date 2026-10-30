@@ -17,7 +17,7 @@ project: clean build
 
 # Run unit tests on the CLI and the test application
 test: build
-	@echo "TODO for V2"
+	@go test ./...
 
 # Clean up the build artifacts
 clean:
